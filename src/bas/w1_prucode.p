@@ -21,6 +21,8 @@
 #define DATD r4.b0
 #define uSEC r5
 #define CMD r6
+#define XX r8
+#define XY r9
 
 #define OE r10
 #define UR r11
@@ -46,9 +48,9 @@
   SBBO OE,  DeAd, 0x34, 4  // write OE
 .endm
 
-#define XX r8
 .origin 0
 LDI  XX, 0x100
+LDI  XY, 0x0
 
 ZERO &r0, 4             // clear register R0
 MOV  DeAd, 0x22020      // load address
@@ -61,6 +63,8 @@ XOR  Msk0, Msk0, Msk1
 SWITCH_INP
 
 main_loop:
+  SBCO XY,  DRam, 0x0C, 4    // save bit counter
+  LDI  XY,  0                // reset counter
   LDI  CMD, 0
   SBCO CMD, DRam, 0x00, 4    // clear command
 
@@ -237,20 +241,24 @@ Delay:
   SUB  UR, UR, 1        // decrease counter
   QBLT delayCnt, UR, 1  // check end
 
-  LBBO UR, DeAd, DIN, 4 // read DATAIN
-  QBBC noBit, UR, 18
-  SET  XX.b3, XX.b2     // .b3 data, .b2 bit counter
+  //LBBO UR, DeAd, DIN, 4 // read DATAIN
+  //QBBC noBit, UR, 18
+  LBBO UR, DeAd, DIN, 4*2  // read DATAIN + DATAOUT
+  OR   UR, UR, U2          // or both together
+  AND  UR, UR, Msk1        // mask our bit
+  QBEQ noBit, UR, 0        // skip if zero
+  SET  XX.b3, XX.b2        // .b3 data, .b2 bit counter
   noBit:
   ADD  XX.b2, XX.b2, 1
   QBGT delayCont, XX.b2, 8
   SBCO XX.b3, DRam, XX.w0, 1  // .w0 memory pointer
   LDI  XX.w2, 0               // reset data and bit counter
-  ADD  XX.w0, XX.w0, 1
-  QBBC delayCont, XX.w0, 13
-  LDI  XX, 0x100
+  ADD  XX.w0, XX.w0, 1        // increase memory pointer
+  QBBC delayCont, XX.w0, 13   // check upper bound
+  LDI  XX, 0x100              // reset memory pointer
 
   delayCont:
-
+  ADD  XY, XY, 1        // increase bit counter
   SUB  uSEC, uSEC, 1    // decrease usec counter
   QBLT Delay, uSEC, 0   // check usec counter
   RET

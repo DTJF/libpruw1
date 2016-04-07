@@ -7,16 +7,14 @@ compile against the library (`#INCLUDE ONCE "BBB/pruw1.bi"`).
 \since 0.0
 '/
 
-#INCLUDE ONCE "BBB/libprussdrv.bi"
+#INCLUDE ONCE "BBB/pruio.bi"
 
-#IFNDEF __PRUW1_DEBUG__
- #DEFINE waitDRam0(_C_) WHILE DRam[0] : SLEEP 1 : WEND
- #DEFINE Debug(_T_)
-#ELSE
- #DEFINE waitDRam0(_C_) WHILE DRam[0] : SLEEP 1 : ?#_C_; : WEND
- #DEFINE Debug(_T_) ?_T_;
-#ENDIF
+' uncomment the following line in order to get debugging messages
+#DEFINE __PRUW1_DEBUG__
 
+' forward declarations of helper functions
+DECLARE FUNCTION T_fam10(BYVAL AS UBYTE PTR) AS SHORT
+DECLARE FUNCTION T_fam20(BYVAL AS UBYTE PTR) AS SHORT
 
 /'* \brief The W1 driver class.
 
@@ -36,7 +34,6 @@ TYPE PruW1
   DECLARE FUNCTION scanBus(BYVAL AS UInt8 = &hF0)as zstring ptr
   DECLARE SUB sendByte(BYVAL AS UInt8)
   DECLARE SUB sendRom(BYVAL AS ULONGINT)
-  DECLARE SUB prot(BYVAL AS UInt16)
   DECLARE FUNCTION recvBlock(BYVAL AS UInt8) AS UInt8
   DECLARE FUNCTION recvByte()AS UInt8
   DECLARE FUNCTION getIn() AS UInt8
@@ -69,4 +66,5 @@ PRIVATE:
   , 116, 42, 200, 150, 21, 75, 169, 247, 182, 232, 10, 84, 215, 137, 107, 53 _
   }
   DECLARE FUNCTION addSensor(BYVAL AS ULONGINT) AS INTEGER
+  DECLARE SUB prot()
 END TYPE

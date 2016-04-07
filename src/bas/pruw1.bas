@@ -10,6 +10,15 @@ functions to decode the temperature from the received data.
 #INCLUDE ONCE "w1_prucode.bi" '   include header
 #INCLUDE ONCE "pruw1.bi" '   include header
 
+#IFNDEF __PRUW1_DEBUG__
+ #DEFINE waitDRam0(_C_) WHILE DRam[0] : SLEEP 1 : WEND
+ #DEFINE DEBUG(_T_)
+ #DEFINE PROTO
+#ELSE
+ #DEFINE waitDRam0(_C_) WHILE DRam[0] : SLEEP 1 : ?#_C_; : WEND
+ #DEFINE DEBUG(_T_) ?_T_;
+ #DEFINE PROTO      prot()
+#ENDIF
 
 /'* \brief The constructor configuring the pin, loading and starting the PRU code.
 \param P A pointer to the libpruio instance (for pinmuxing).
@@ -31,7 +40,8 @@ communication).
 '/
 CONSTRUCTOR PruW1(BYVAL P AS PruIo PTR, BYVAL B AS Uint8)
   WITH *P
-    IF .Gpio->config(B, PRUIO_GPIO_IN) THEN Errr = @"pin configuration not matching" : EXIT CONSTRUCTOR
+    IF .Gpio->config(B, PRUIO_GPIO_IN) THEN _
+             Errr = @"pin configuration not matching" : EXIT CONSTRUCTOR
 
     VAR r = .BallGpio(B) _ ' resulting GPIO (index and bit number)
       , i = r SHR 5 _      ' index of GPIO
@@ -57,7 +67,7 @@ CONSTRUCTOR PruW1(BYVAL P AS PruIo PTR, BYVAL B AS Uint8)
 
     VAR l = (UBOUND(Pru_W1) + 1) * SIZEOF(Pru_W1(0))
     IF 0 >= prussdrv_pru_write_memory(PRUSS0_PRU0_IRAM, 0, @Pru_W1(0), l) THEN _
-                                               Errr = @"failed loading PRU firmware" : EXIT CONSTRUCTOR
+                Errr = @"failed loading PRU firmware" : EXIT CONSTRUCTOR
     prussdrv_pruintc_init(@PRUSS_INTC_INITDATA) ' interrupts initialization
     prussdrv_pru_enable(PruNo)
   END WITH
@@ -110,14 +120,16 @@ function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
     sendByte(SearchType)
     FOR i AS INTEGER = 0 TO 63
       SELECT CASE i
-      CASE      desc_bit : search_bit = 1 '/* took the 0 path last_device time, so take the 1 path */
-      CASE IS > desc_bit : search_bit = 0 '/* take the 0 path on the next branch */
+      CASE      desc_bit : search_bit = 1 ' took the 0 path last_device time, so take the 1 path
+      CASE IS > desc_bit : search_bit = 0 ' take the 0 path on the next branch
       CASE ELSE          : search_bit = (last_rn SHR i) AND &b1
       END SELECT
 
        waitDRam0(.)
+       DEBUG(!"\ntripple")
        DRam[0] = 1 + search_bit SHL 8
        waitDRam0(>)
+       PROTO
        ret = DRam[4] AND &b111
 
        SELECT CASE AS CONST ret
@@ -160,10 +172,11 @@ ROM command.
 '/
 SUB PruW1.sendByte(BYVAL V AS UInt8)
   waitDRam0(.)
-Debug(!"\nsendByte: " & HEX(V, 2) & " " & BIN(V, 8) & " ")
+  DEBUG(!"\nsendByte: " & HEX(V, 2) & " " & BIN(V, 8) & " ")
   DRam[4] = V
   DRam[0] = 30 + 1 SHL 8
   waitDRam0(>)
+  PROTO
 END SUB
 
 
@@ -178,9 +191,10 @@ single device, ie. to read its scratchpad.
 SUB PruW1.sendRom(BYVAL V AS ULONGINT)
   waitDRam0(.)
   *CAST(ULONGINT PTR, @DRam[4]) = V
-Debug(!"\nsendRom: " & HEX(PEEK(ULONGINT, @DRam[4]), 16) & " ")
+  DEBUG(!"\nsendRom: " & HEX(PEEK(ULONGINT, @DRam[4]), 16) & " ")
   DRam[0] = 30 + 8 SHL 8
   waitDRam0(>)
+  PROTO
 END SUB
 
 
@@ -197,11 +211,12 @@ offset `&h10`.
 '/
 FUNCTION PruW1.recvBlock(BYVAL N AS UInt8) AS UInt8
   waitDRam0(.)
-Debug(!"\nrecvBlock: " & N & " CMD ...")
+  DEBUG(!"\nrecvBlock: " & N & " CMD ...")
   DRam[0] = 20 + N SHL 8
-Debug(" start " & DRam[0])
+  DEBUG(" start " & HEX(DRam[0], 4))
   waitDRam0(.)
-Debug(" done")
+  DEBUG(" done")
+  PROTO
   RETURN N
 END FUNCTION
 
@@ -216,12 +231,13 @@ value is the byte received.
 '/
 FUNCTION PruW1.recvByte()AS UInt8
   waitDRam0(.)
-Debug(!"\nrecvByte:")
-Debug("  CMD ...")
+  DEBUG(!"\nrecvByte:")
+  DEBUG("  CMD ...")
   DRam[0] = 20 + 1 SHL 8
-Debug(" start " & DRam[0])
+  DEBUG(" start " & HEX(DRam[0], 4))
   waitDRam0(.)
-Debug(" done")
+  DEBUG(" done")
+  PROTO
   RETURN DRam[4] AND &hFF
 END FUNCTION
 
@@ -230,7 +246,8 @@ END FUNCTION
 \returns The state (1 = high, 0 = low)
 
 This function returns the current state of the GPIO line used for the
-bus. The function uses libpruio to fetch the state.
+bus. The function uses libpruio to fetch the state, so only use it
+after the PruIo::config() call.
 
 \since 0.0
 '/
@@ -244,17 +261,18 @@ END FUNCTION
 
 This function sends the reset signal to the bus. It uses special
 timing. After the reset signal all devices answer by a presence pulse,
-so that the master knows that slave devices are on the bus (return value
-= 1). Otherwise, in case of no devices are responding, the return value
-is `0` (zero).
+so that the master knows that slave devices are on the bus. In that
+case the return value is 0  (zero). Otherwise, in case of no devices
+are responding, the return value is 1.
 
 \since 0.0
 '/
 FUNCTION PruW1.resetBus() AS UInt8
   waitDRam0(.)
-Debug(!"\nresetBus:")
+  DEBUG(!"\nresetBus:")
   DRam[0] = 10
   waitDRam0(.)
+  PROTO
   RETURN DRam[4] AND &b1
 END FUNCTION
 
@@ -287,9 +305,11 @@ FIXME
 
 \since 0.0
 '/
-SUB PruW1.prot(BYVAL N AS UInt16)
+SUB PruW1.prot()
   STATIC AS UInt32 p = 64, b = 0
-  FOR i AS INTEGER = 1 TO N
+  ?
+'?"No of bits: " & DRam[3]
+  FOR i AS INTEGER = 1 TO DRam[3]
     IF i MOD 70 THEN
       IF BIT(DRam[p], b) THEN ?"-"; ELSE ?"_";
     ELSE
