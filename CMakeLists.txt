@@ -6,7 +6,7 @@ PROJECT(libpruw1 Fbc)
 
 # constants
 SET(PROJ_NAME "${CMAKE_PROJECT_NAME}" CACHE STRING "project name" FORCE)
-SET(PROJ_DESC "One wire (W1) driver Beagleboard hardware based on libpruio" CACHE STRING "project description" FORCE)
+SET(PROJ_DESC "One wire (W1) driver for Beaglebone hardware based on libpruio" CACHE STRING "project description" FORCE)
 SET(PROJ_VERS "0.0"     CACHE STRING "project version" FORCE)
 SET(PROJ_AUTH "DTJF"    CACHE STRING "project authors" FORCE)
 SET(PROJ_MAIL "Thomas{ doT ]Freiherr[ At ]gmx[ DoT }net"  CACHE STRING "project mail address" FORCE)
@@ -16,11 +16,11 @@ SET(PROJ_LICE "LGPLv2.1" CACHE STRING "project licence" FORCE)
 #SET(PROJ_YEAR "${tmp}"             CACHE STRING "project year" FORCE)
 SET(PROJ_YEAR "2016"   CACHE STRING "project year" FORCE)
 
-CONFIGURE_FILE(src/doc/ReadMe.md.in ${CMAKE_SOURCE_DIR}/ReadMe.md @ONLY)
-ADD_SUBDIRECTORY(doxy)
-
 FIND_PACKAGE(LIBPRUSSDRV)
 ADD_SUBDIRECTORY(src/bas)
+
+CONFIGURE_FILE(src/doc/ReadMe.md.in ${CMAKE_SOURCE_DIR}/ReadMe.md @ONLY)
+ADD_SUBDIRECTORY(doxy)
 
 IF(PASM_ASSEMBER_WORKS AND LIBPRUSSDRV_LIBRARY)
   ADD_LIBRARY(pruw1 SHARED $<TARGET_OBJECTS:pruw1fbcode>)
@@ -28,7 +28,6 @@ IF(PASM_ASSEMBER_WORKS AND LIBPRUSSDRV_LIBRARY)
 
   ADD_CUSTOM_TARGET(examples)
   ADD_SUBDIRECTORY(src/examples)
-  ADD_SUBDIRECTORY(src/c_examples)
   ADD_DEPENDENCIES(examples pruw1)
   #SET_TARGET_PROPERTIES(examples PROPERTIES EXCLUDE_FROM_ALL 1)
 
@@ -41,12 +40,6 @@ ELSE()
 
   SET_TARGET_PROPERTIES(doc PROPERTIES EXCLUDE_FROM_ALL 0)
 ENDIF()
-
-
-#INSTALL(TARGETS pruw1
-  #LIBRARY DESTINATION lib
-  #COMPONENT bin
-  #)
 
 SET(C_HEADERS
   "src/c_include/pruw1.h"

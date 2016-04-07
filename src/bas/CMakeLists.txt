@@ -1,3 +1,18 @@
+SET(SRC_BAS
+  ${CMAKE_CURRENT_SOURCE_DIR}/pruw1.bas
+  CACHE FILEPATH "BASIC source files" FORCE
+  )
+
+SET(SRC_BI
+  ${CMAKE_CURRENT_SOURCE_DIR}/pruw1.bi
+  CACHE FILEPATH "header files" FORCE
+  )
+
+SET(PASM_SRC
+  ${CMAKE_CURRENT_SOURCE_DIR}/w1_prucode.p
+  CACHE FILEPATH "ASM source files" FORCE
+  )
+
 
 # Check the PRU assembler pasm (presence and version):
 IF(NOT DEFINED PASM_ASSEMBER_WORKS)
@@ -36,7 +51,7 @@ IF(NOT DEFINED PASM_ASSEMBER_WORKS)
   ELSE()
     MESSAGE(STATUS "PASM assembler not found (command pasm)!")
     FILE(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
-      "Finding the pasm assembler failed!")
+      "Finding the pasm assembler failed!\n")
   ENDIF()
 ENDIF()
 
@@ -46,33 +61,14 @@ ENDIF()
 
 FIND_PACKAGE(LIBPRUSSDRV)
 
-
-SET(PASM_SRC
-    "w1_prucode.p"
-  CACHE FILEPATH "ASM source files" FORCE
-  )
-
-SET(SRC_BAS
-    "pruw1.bas"
-  CACHE FILEPATH "BASIC source files" FORCE
-  )
-
-SET(SRC_BI
-    "pruw1.bi"
-  CACHE FILEPATH "header files" FORCE
-  )
-
-
-ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${PASM_SRC}
+ADD_CUSTOM_COMMAND(OUTPUT ${PASM_SRC}
   COMMAND pasm ARGS -V3 -y -CPru_Init ${PASM_SRC}
   COMMAND ${CMAKE_COMMAND} -E touch_nocreate pruw1.bas
   DEPENDS ${PASM_SRC}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
-ADD_CUSTOM_TARGET(pasm DEPENDS
-  ${CMAKE_CURRENT_SOURCE_DIR}/${PASM_SRC}
-  )
+ADD_CUSTOM_TARGET(pasm DEPENDS ${PASM_SRC})
 
 ADD_LIBRARY(pruw1fbcode OBJECT ${SRC_BAS})
 SET_TARGET_PROPERTIES(pruw1fbcode PROPERTIES

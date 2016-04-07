@@ -11,8 +11,8 @@ BAS_SRC
   ${SRC_BI}
   #${PASM_SRC}
 DEPENDS
-    "../src/doc/_2_preparation.md"
-    "../src/doc/_z_changelog.md"
+  "../src/doc/_2_preparation.md"
+  "../src/doc/_z_changelog.md"
   ../CMakeLists.txt
   ../ReadMe.md
   Doxyfile

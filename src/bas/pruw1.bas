@@ -1,43 +1,63 @@
-/'* \file w1_driver.bas
-\brief The function bodies for the w1Driver class.
+/'* \file pruw1.bas
+\brief The function bodies for the PruW1 class, tools for decoding.
 
-FIXME
+This file contains the function bodies for the PruW1 class and some
+functions to decode the temperature from the received data.
 
 \since 0.0
 '/
 
 #INCLUDE ONCE "w1_prucode.bi" '   include header
-#INCLUDE ONCE "w1_driver.bi" '   include header
+#INCLUDE ONCE "pruw1.bi" '   include header
 
 
-/'* \brief The constructor configuring the pin, loading and staring the PRU code
+/'* \brief The constructor configuring the pin, loading and starting the PRU code.
 \param P A pointer to the libpruio instance (for pinmuxing).
 \param B The header pin to use as W1 bus data line.
 
-FIXME
+The constructor is designed to
 
-\since .
+- allocate and initialize memory for the class variables,
+- check the header pin configuration (and, if not matching, try to adapt it - root privileges),
+- evaluate the free PRU (not used by libpruio)
+- load the firmware and start it
+
+In case of success the variable PruW1::Errr is 0 (zero) and you can
+start to communicate on the bus. Otherwise the variable contains an
+error message. In that case call the destructor (and do not start any
+communication).
+
+\since 0.0
 '/
-CONSTRUCTOR w1Driver(BYVAL P AS PruIo PTR, BYVAL B AS Uint8)
+CONSTRUCTOR PruW1(BYVAL P AS PruIo PTR, BYVAL B AS Uint8)
   WITH *P
-    IF .Gpio->config(B, PRUIO_GPIO_IN) THEN  EXIT CONSTRUCTOR
+    IF .Gpio->config(B, PRUIO_GPIO_IN) THEN Errr = @"pin configuration not matching" : EXIT CONSTRUCTOR
 
     VAR r = .BallGpio(B) _ ' resulting GPIO (index and bit number)
       , i = r SHR 5 _      ' index of GPIO
       , n = r AND 31       ' number of bit
     Mask = 1 SHL n
     Raw = @.Gpio->Raw(i)->Mix
+    IF .PruNo then
+      PruNo = 0
+      PruIRam = PRUSS0_PRU0_IRAM
+      PruDRam = PRUSS0_PRU0_DATARAM
+    ELSE
+      PruNo = 1
+      PruIRam = PRUSS0_PRU1_IRAM
+      PruDRam = PRUSS0_PRU1_DATARAM
+    END IF
 
     prussdrv_map_prumem(PruDRam, CAST(ANY PTR, @DRam))
 
-    prussdrv_pru_disable(PruNo) '      disable PRU-0 (if running before)
+    prussdrv_pru_disable(PruNo) '        disable PRU (if running before)
     DRam[0] = 0
     DRam[1] = .Gpio->Conf(i)->DeAd + &h100 ' device adress
     DRam[2] = Mask                         ' the mask to related bit
 
     VAR l = (UBOUND(Pru_W1) + 1) * SIZEOF(Pru_W1(0))
     IF 0 >= prussdrv_pru_write_memory(PRUSS0_PRU0_IRAM, 0, @Pru_W1(0), l) THEN _
-              ?"failed loading Pru_Init instructions" : EXIT CONSTRUCTOR
+                                               Errr = @"failed loading PRU firmware" : EXIT CONSTRUCTOR
     prussdrv_pruintc_init(@PRUSS_INTC_INITDATA) ' interrupts initialization
     prussdrv_pru_enable(PruNo)
   END WITH
@@ -50,19 +70,30 @@ FIXME
 
 \since 0.0
 '/
-DESTRUCTOR w1Driver()
+DESTRUCTOR PruW1()
   prussdrv_pru_disable(PruNo) '      disable PRU-0
 END DESTRUCTOR
 
 
 /'* \brief Function to scan the bus for all devices.
 \param SearchType The search type (defaults to &hF0).
+\returns An error message or `0` (zero) on success.
 
-FIXME
+This function scans the bus and list the IDs of the found devices (if
+any) in the array Slots. By default it uses the default search ROM
+command (`&hF0`).
+
+Find the number of devices by evaluating the upper bound of array Slots.
+
+\note Usually the bus gets scanned once in the init process of an
+      application. When you intend to use dynamic sensor connections
+      (plug them in and off), then you have to periodically re-scan the
+      bus. In that case clear the Slots array before each scan, in
+      order to avoid double entries.
 
 \since 0.0
 '/
-SUB w1Driver.scanBus(BYVAL SearchType AS UInt8 = &hF0)
+function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
   VAR max_slave = 64 _
           , cnt = 1 _
      , desc_bit = 64 _
@@ -75,12 +106,12 @@ SUB w1Driver.scanBus(BYVAL SearchType AS UInt8 = &hF0)
   WHILE 0 = last_device ANDALSO cnt < max_slave
     last_rn = rn
     rn = 0
-    IF resetBus() THEN ?"no devices" : EXIT WHILE
-    send8(SearchType)
+    IF resetBus() THEN                Errr = @"no devices" : return Errr
+    sendByte(SearchType)
     FOR i AS INTEGER = 0 TO 63
       SELECT CASE i
       CASE      desc_bit : search_bit = 1 '/* took the 0 path last_device time, so take the 1 path */
-      CASE IS > desc_bit : search_bit = 0	'/* take the 0 path on the next branch */
+      CASE IS > desc_bit : search_bit = 0 '/* take the 0 path on the next branch */
       CASE ELSE          : search_bit = (last_rn SHR i) AND &b1
       END SELECT
 
@@ -91,7 +122,7 @@ SUB w1Driver.scanBus(BYVAL SearchType AS UInt8 = &hF0)
 
        SELECT CASE AS CONST ret
        CASE 0 : last_zero = i
-       CASE 3 : ?"error" : CONTINUE WHILE
+       CASE 3 : CONTINUE WHILE ' should never happen (error -> next device)
        END SELECT
        rn OR= CULNGINT(ret) SHR 2 SHL i
     NEXT
@@ -99,19 +130,19 @@ SUB w1Driver.scanBus(BYVAL SearchType AS UInt8 = &hF0)
     desc_bit = last_zero
     addSensor(rn)
     cnt += 1
-  WEND
-END SUB
+  WEND :                                                     return 0
+END function
 
 
-/'* \brief Function to add a device to the w1Driver::Slots array.
+/'* \brief Function to add a device to the PruW1::Slots array.
 \param N The device ID to add.
-\returns The current maximum index of the dynamic w1Driver::Slots array.
+\returns The current maximum index of the dynamic PruW1::Slots array.
 
 FIXME
 
 \since 0.0
 '/
-FUNCTION w1Driver.addSensor(BYVAL N AS ULONGINT) AS INTEGER
+FUNCTION PruW1.addSensor(BYVAL N AS ULONGINT) AS INTEGER
   VAR u = UBOUND(Slots) + 1
   REDIM PRESERVE Slots(u)
   Slots(u) = N
@@ -119,16 +150,17 @@ FUNCTION w1Driver.addSensor(BYVAL N AS ULONGINT) AS INTEGER
 END FUNCTION
 
 
-/'* \brief Send eight bits (a byte) to the bus.
+/'* \brief Send a byte (eight bits) to the bus.
 \param V The value to send.
 
-FIXME
+This procedure sends a byte to the bus. It's usually used to issue a
+ROM command.
 
 \since 0.0
 '/
-SUB w1Driver.send8(BYVAL V AS UInt8)
+SUB PruW1.sendByte(BYVAL V AS UInt8)
   waitDRam0(.)
-Debug(!"\nsend8: " & HEX(V, 2) & " " & BIN(V, 8) & " ")
+Debug(!"\nsendByte: " & HEX(V, 2) & " " & BIN(V, 8) & " ")
   DRam[4] = V
   DRam[0] = 30 + 1 SHL 8
   waitDRam0(>)
@@ -138,11 +170,12 @@ END SUB
 /'* \brief Send a ROM id to the bus (to select a device).
 \param V The ROM id (8 btes) to send.
 
-FIXME
+This procedure sends a ROM ID to the bus. It's usually used to adress a
+single device, ie. to read its scratchpad.
 
 \since 0.0
 '/
-SUB w1Driver.sendRom(BYVAL V AS ULONGINT)
+SUB PruW1.sendRom(BYVAL V AS ULONGINT)
   waitDRam0(.)
   *CAST(ULONGINT PTR, @DRam[4]) = V
 Debug(!"\nsendRom: " & HEX(PEEK(ULONGINT, @DRam[4]), 16) & " ")
@@ -155,11 +188,14 @@ END SUB
 \param N The number of bytes to read (receive).
 \returns The number of bytes read.
 
-FIXME
+This function triggers the bus to receive a block of bytes. Parameter
+`N` specifies the number of bytes to read. The return value is the
+number of bytes read. The data bytes are in the PRU DRAM, starting at
+offset `&h10`.
 
 \since 0.0
 '/
-FUNCTION w1Driver.recvBlock(BYVAL N AS UInt8) AS UInt8
+FUNCTION PruW1.recvBlock(BYVAL N AS UInt8) AS UInt8
   waitDRam0(.)
 Debug(!"\nrecvBlock: " & N & " CMD ...")
   DRam[0] = 20 + N SHL 8
@@ -173,13 +209,14 @@ END FUNCTION
 /'* \brief Receive a single byte (8 bit).
 \returns The byte read from the bus.
 
-FIXME
+This function triggers the bus to receive a single byte. The return
+value is the byte received.
 
 \since 0.0
 '/
-FUNCTION w1Driver.recv8()AS UInt8
+FUNCTION PruW1.recvByte()AS UInt8
   waitDRam0(.)
-Debug(!"\nrecv8:")
+Debug(!"\nrecvByte:")
 Debug("  CMD ...")
   DRam[0] = 20 + 1 SHL 8
 Debug(" start " & DRam[0])
@@ -192,23 +229,28 @@ END FUNCTION
 /'* \brief Get the state of the data line.
 \returns The state (1 = high, 0 = low)
 
-FIXME
+This function returns the current state of the GPIO line used for the
+bus. The function uses libpruio to fetch the state.
 
 \since 0.0
 '/
-FUNCTION w1Driver.getIn() AS UInt8
+FUNCTION PruW1.getIn() AS UInt8
   RETURN IIF(*Raw AND Mask, 1, 0)
 END FUNCTION
 
 
 /'* \brief Send the reset signal to the bus.
-\returns FIXME
+\returns The presence pulse from the bus.
 
-FIXME
+This function sends the reset signal to the bus. It uses special
+timing. After the reset signal all devices answer by a presence pulse,
+so that the master knows that slave devices are on the bus (return value
+= 1). Otherwise, in case of no devices are responding, the return value
+is `0` (zero).
 
 \since 0.0
 '/
-FUNCTION w1Driver.resetBus() AS UInt8
+FUNCTION PruW1.resetBus() AS UInt8
   waitDRam0(.)
 Debug(!"\nresetBus:")
   DRam[0] = 10
@@ -218,29 +260,34 @@ END FUNCTION
 
 
 /'* \brief Compute the CRC checksum for data package.
-\param N The length of the package.
-\returns FIXME
+\param N The length of the package in bytes.
+\returns The CRC checksum for a data package (0 = success).
 
-FIXME
+A data package (usually the 64-bit scratchpad context) is in the PRU
+DRam after a PruW1::readBlock() operation. This function computes
+the CRC checksum for a package with a given length. The length
+parameter specifies where to find the CRC byte, so in case of an 8 byte
+package length has to be 9 (= the same value as in the
+PruW1::readBlock() call).
 
 \since 0.0
 '/
-FUNCTION w1Driver.calcCrc(BYVAL N AS UInt8) AS UInt8
-	VAR crc = 0, p = CAST(UBYTE PTR, @DRam[4])
-	FOR p = p TO p + N - 1
+FUNCTION PruW1.calcCrc(BYVAL N AS UInt8) AS UInt8
+  VAR crc = 0, p = CAST(UBYTE PTR, @DRam[4])
+  FOR p = p TO p + N - 1
     crc = crc8_table(crc XOR *p)
   NEXT : RETURN crc
 END FUNCTION
 
 
-/'* \brief Print the log data to to STDOUT.
+/'* \brief Print the log data to STDOUT.
 \param N The number of states to output.
 
 FIXME
 
 \since 0.0
 '/
-SUB w1Driver.prot(BYVAL N AS UInt16)
+SUB PruW1.prot(BYVAL N AS UInt16)
   STATIC AS UInt32 p = 64, b = 0
   FOR i AS INTEGER = 1 TO N
     IF i MOD 70 THEN
@@ -254,10 +301,16 @@ END SUB
 
 
 /'* \brief Compute the temperature for a series 10 sensor (old format).
-\param Rom The data read from the device.
+\param Rom The pointer where to find the data received from the device.
 \returns The temperature (high byte = decimal value, low byte = digits).
 
-FIXME
+This function decodes the temperature value from a DS18S20 sensor (such
+sensors have `&h10` in the lowest byte of their ID). The returned value
+contains the temperature in grad Celsius in the high byte and the
+decimal places in the low byte. Divide the value by 256 to get a real
+number containing the temperatur in grad Celsius.
+
+Parameter `Rom` is usually the adress of PruW1::DRam[4].
 
 \since 0.0
 '/
@@ -267,10 +320,16 @@ END FUNCTION
 
 
 /'* \brief Compute the temperature for a series 20 sensor (new format).
-\param Rom The data read from the device.
+\param Rom The pointer where to find the data received from the device.
 \returns The temperature (high byte = decimal value, low byte = digits).
 
-FIXME
+This function decodes the temperature value from a DS18B20 sensor (such
+sensors have `&h20` in the lowest byte of their ID). The returned value
+contains the temperature in grad Celsius in the high byte and the
+decimal places in the low byte. Divide the value by 256 to get a real
+number containing the temperatur in grad Celsius.
+
+Parameter `Rom` is usually the adress of PruW1::DRam[4].
 
 \since 0.0
 '/

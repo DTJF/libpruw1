@@ -51,7 +51,7 @@ PROJECT_BRIEF          = "Input/Output driver for digital/analog lines on Beagle
 # and the maximum width should not exceed 200 pixels. Doxygen will copy the logo
 # to the output directory.
 
-PROJECT_LOGO           = ../src/doc/img/pruw1_logo.png
+PROJECT_LOGO           = ../src/doc/pruw1_logo.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
 # into which the generated documentation will be written. If a relative path is
@@ -781,7 +781,6 @@ INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.bi \
                          *.bas \
                          *.md \
-                         *.hp \
                          *.h \
                          *.c
 

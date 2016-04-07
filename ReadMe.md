@@ -1,4 +1,4 @@
-Welcome to *@PROJ_NAME@* library,
+Welcome to *libpruw1* library,
 
 - a one wire (W1) driver for ARM33xx micro processors,
 - designed for [Beaglebone hardware](http://www.beaglebone.org), supporting
@@ -6,7 +6,7 @@ Welcome to *@PROJ_NAME@* library,
 - digital input and output.
 
 It's designed for easy configuration and data handling at high speed.
-*@PROJ_NAME@* software runs on the host (ARM) and in parallel on a
+*libpruw1* software runs on the host (ARM) and in parallel on a
 Programmable Realtime Unit SubSystem (= PRUSS or just PRU) for accurate
 bus timing.
 
@@ -18,7 +18,7 @@ The driver provides functions to
 - calculate the CRC checksum for a block of data
 - compute the temperature from Dallas sensors series 10 and 20.
 
-The *@PROJ_NAME@* project is [hosted at GitHub](@PROJ_WEBS@). It's
+The *libpruw1* project is [hosted at GitHub](https://github.com/DTJF/libpruw1). It's
 developed and tested on a Beaglebone Black under Debian Image
 2014-08-05. It should run on all Beaglebone platforms with Debian based
 LINUX operating system. It's compiled by the [FreeBasic
@@ -27,7 +27,7 @@ language is included.
 
 Find more information in the online documentation at
 
-- http://users.freebasic-portal.de/tjf/Projekte/@PROJ_NAME@/doc/html/
+- http://users.freebasic-portal.de/tjf/Projekte/libpruw1/doc/html/
 
 or at related forum pages:
 
@@ -38,13 +38,13 @@ or at related forum pages:
 Licence:
 ========
 
-@PROJ_NAME@ (@PROJ_LICE@):
+libpruw1 (LGPLv2.1):
 --------------------------
 
-Copyright &copy; 2015-@PROJ_YEAR@ by @PROJ_MAIL@
+Copyright &copy; 2015-2016 by Thomas{ doT ]Freiherr[ At ]gmx[ DoT }net
 
 This program is free software; you can redistribute it and/or modify it
-under the terms of the Lesser GNU General Public License (@PROJ_LICE@)
+under the terms of the Lesser GNU General Public License (LGPLv2.1)
 as published by the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful, but
@@ -62,7 +62,7 @@ http://www.gnu.org/licenses/lgpl-2.0.html
 Examples and utility programs (GPLv3):
 --------------------------------------
 
-Copyright &copy; 2015-@PROJ_YEAR@ by @PROJ_MAIL@
+Copyright &copy; 2015-2016 by Thomas{ doT ]Freiherr[ At ]gmx[ DoT }net
 
 The examples of this bundle are free software as well; you can
 redistribute them and/or modify them under the terms of the GNU
