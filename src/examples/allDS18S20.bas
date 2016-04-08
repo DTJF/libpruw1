@@ -1,18 +1,29 @@
 /'* \file allDS18S20.bas
 \brief Example fetching temperature from all DS18S20 sensors on the bus.
 
-FIXME
+This example demonstrates how to
+
+- initialize the \Proj library,
+- define a GPIO header pin as one wire bus,
+- handle error codes on initialization,
+- scan the bus for devices,
+- perform 11 temperature convert broardcasts,
+- read the measurement results from the sensor scratchpads, and
+- print them on the screen.
+
+Check the output for enabled debugging feature as well, see section
+\ref ChaDebug for details.
 
 \since 0.0
 '/
 
-'#INCLUDE ONCE "BBB/pruw1.bi" '   include header
-#INCLUDE ONCE "../bas/pruw1.bi" '   include header
-#INCLUDE ONCE "BBB/pruio_pins.bi"
+'#INCLUDE ONCE "BBB/pruw1.bi" ' library header (after `make install`)
+#INCLUDE ONCE "../bas/pruw1.bi" ' library header
+#INCLUDE ONCE "BBB/pruio_pins.bi" ' libruio pin numbering
 
 VAR io = NEW PruIo()                          ' create libpruio instance
 DO
-  IF io->Errr THEN        ?"io CTOR failed (" & io->Errr & ")" : EXIT DO
+  IF io->Errr THEN       ?"io CTOR failed (" & *io->Errr & ")" : EXIT DO
 
   ' uncomment the following lines in order to use function PruW1::getIn()
   'IF io->config() THEN _
@@ -27,17 +38,17 @@ DO
     FOR i AS INTEGER = 0 TO UBOUND(.Slots) ' output slot# and sensor IDs
       ?"found device " & i & ", ID: " & HEX(.Slots(i), 16)
     NEXT
-exit do
-    FOR i AS INTEGER = 0 TO 0 '                output 11 blocks of data
+'exit do
+    FOR i AS INTEGER = 0 TO 10 '                output 11 blocks of data
       VAR res = .resetBus()
-      if res then                                ?"no devices" : exit do
+      IF res THEN                                ?"no devices" : EXIT DO
 
       .sendByte(&hCC)            ' SKIP_ROM command -> broadcast message
       .sendByte(&h44)       ' convert T command -> all sensors triggered
       SLEEP 750 : ?                              ' wait for conversation
 
       FOR s AS INTEGER = 0 TO UBOUND(.Slots)
-        IF peek(ubyte, @.Slots(s)) <> &h10 THEN CONTINUE FOR ' series 10 only
+        IF PEEK(UBYTE, @.Slots(s)) <> &h10 THEN CONTINUE FOR ' series 10 only
 
         VAR res = .resetBus()                   ' prepare bus for readings
 

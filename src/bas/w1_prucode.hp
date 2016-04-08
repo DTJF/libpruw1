@@ -1,0 +1,36 @@
+#ifdef FOR_DOXYGEN_ONLY
+/*!
+\file w1_prucode.hp
+\brief This file synchronizes parameters between FreeBASIC, C and PASM source code.
+
+This file is used in FreeBASIC, C and PASM source code to synchonize
+the PRU message code numbers and the debug switch.
+
+Since all the syntaxes have different markers for comments, we cannot
+use 'normal' comments here. We've to enclose the comment text in
+preprocessor blocks that never get parsed.
+
+\note We cannot use hexadecimal numbers here since syntaxes are different.
+
+\def __PRUW1_DEBUG__
+\brief The switch to enable debugging features.
+
+\def CMD_TRIP
+\brief The command to initiate a tripple.
+\def CMD_RESET
+\brief The command to initiate a bus reset.
+\def CMD_RECV
+\brief The command to initiate a bus receive operation.
+\def CMD_SEND
+\brief The command to initiate a bus send operation.
+
+*/
+
+Swap the following two lines in order to compile with debugging features.
+#define __PRUW1_DEBUG__
+#endif
+
+#define CMD_RESET 16
+#define CMD_TRIP  32
+#define CMD_RECV  48
+#define CMD_SEND  64

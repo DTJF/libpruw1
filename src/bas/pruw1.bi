@@ -10,7 +10,7 @@ compile against the library (`#INCLUDE ONCE "BBB/pruw1.bi"`).
 #INCLUDE ONCE "BBB/pruio.bi"
 
 ' uncomment the following line in order to get debugging messages
-#DEFINE __PRUW1_DEBUG__
+'#DEFINE __PRUW1_DEBUG__
 
 ' forward declarations of helper functions
 DECLARE FUNCTION T_fam10(BYVAL AS UBYTE PTR) AS SHORT
@@ -65,6 +65,5 @@ PRIVATE:
   , 233, 183, 85, 11, 136, 214, 52, 106, 43, 117, 151, 201, 74, 20, 246, 168 _
   , 116, 42, 200, 150, 21, 75, 169, 247, 182, 232, 10, 84, 215, 137, 107, 53 _
   }
-  DECLARE FUNCTION addSensor(BYVAL AS ULONGINT) AS INTEGER
   DECLARE SUB prot()
 END TYPE

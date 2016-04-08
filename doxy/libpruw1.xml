@@ -6,6 +6,7 @@
     <tab type="pages" visible="no" title="" intro=""/>
     <tab type="usergroup" title="Description">
       <tab type="user" url="@ref ChaPreparation" title="Preparation"/>
+      <tab type="user" url="@ref ChaDebug" title="Debugging Features"/>
       <tab type="user" url="@ref ChaChangelog" title="Changelog &amp; Credits"/>
     </tab>
     <tab type="modules" visible="yes" title="" intro=""/>

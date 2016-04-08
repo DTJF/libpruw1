@@ -1,11 +1,12 @@
 Welcome to *@PROJ_NAME@* library,
 
-- a one wire (W1) driver for ARM33xx micro processors,
-- designed for [Beaglebone hardware](http://www.beaglebone.org), supporting
-- configuration of a GPIO as W1 bus and
-- digital input and output.
+- a one wire (W1) driver for ARM335x micro processors,
+- designed for [Beaglebone hardware](http://www.beaglebone.org), providing
+- configuration of any GPIO as W1 bus, for
+- sending digital output and receiving digital input from the bus, and
+- logging the bus data line state for debug purposes, but
+- does not support parasite power mode.
 
-It's designed for easy configuration and data handling at high speed.
 *@PROJ_NAME@* software runs on the host (ARM) and in parallel on a
 Programmable Realtime Unit SubSystem (= PRUSS or just PRU) for accurate
 bus timing.

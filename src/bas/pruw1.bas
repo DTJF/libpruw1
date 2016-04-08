@@ -7,17 +7,26 @@ functions to decode the temperature from the received data.
 \since 0.0
 '/
 
-#INCLUDE ONCE "w1_prucode.bi" '   include header
-#INCLUDE ONCE "pruw1.bi" '   include header
+#INCLUDE ONCE "w1_prucode.bi" ' PRU firmware
+#INCLUDE ONCE "w1_prucode.hp" ' PRU syncronization
+#INCLUDE ONCE "pruw1.bi" ' FB declarations
 
 #IFNDEF __PRUW1_DEBUG__
- #DEFINE waitDRam0(_C_) WHILE DRam[0] : SLEEP 1 : WEND
- #DEFINE DEBUG(_T_)
- #DEFINE PROTO
+ #MACRO PRUCALL(_C_,_V_,_T_)
+  WHILE DRam[0] : SLEEP 1 : WEND
+  _V_
+  DRam[0] = _C_
+  WHILE DRam[0] : SLEEP 1 : WEND
+ #ENDMACRO
 #ELSE
- #DEFINE waitDRam0(_C_) WHILE DRam[0] : SLEEP 1 : ?#_C_; : WEND
- #DEFINE DEBUG(_T_) ?_T_;
- #DEFINE PROTO      prot()
+ #MACRO PRUCALL(_C_,_V_,_T_)
+  WHILE DRam[0] : SLEEP 1 : ?"."; : WEND
+  _V_
+  DRam[0] = _C_
+  ?!"\n";_T_; " command=&h"; HEX(DRam[0], 4); " ";
+  WHILE DRam[0] : SLEEP 1 : ?"."; : WEND
+  prot()
+ #ENDMACRO
 #ENDIF
 
 /'* \brief The constructor configuring the pin, loading and starting the PRU code.
@@ -74,14 +83,14 @@ CONSTRUCTOR PruW1(BYVAL P AS PruIo PTR, BYVAL B AS Uint8)
 END CONSTRUCTOR
 
 
-/'* \brief The destructor stopping and disabling the PRU
+/'* \brief The destructor stopping PRU, freeing memory.
 
-FIXME
+The destructor stops the PRU by disabling it. Then it frees the memory.
 
 \since 0.0
 '/
 DESTRUCTOR PruW1()
-  prussdrv_pru_disable(PruNo) '      disable PRU-0
+  prussdrv_pru_disable(PruNo) ' disable PRU
 END DESTRUCTOR
 
 
@@ -125,11 +134,7 @@ function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
       CASE ELSE          : search_bit = (last_rn SHR i) AND &b1
       END SELECT
 
-       waitDRam0(.)
-       DEBUG(!"\ntripple")
-       DRam[0] = 1 + search_bit SHL 8
-       waitDRam0(>)
-       PROTO
+       PRUCALL(CMD_TRIP + search_bit SHL 8,,"tripple:")
        ret = DRam[4] AND &b111
 
        SELECT CASE AS CONST ret
@@ -140,26 +145,12 @@ function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
     NEXT
     IF desc_bit = last_zero ORELSE last_zero < 0 THEN last_device = 1
     desc_bit = last_zero
-    addSensor(rn)
+    VAR u = UBOUND(Slots) + 1
+    REDIM PRESERVE Slots(u)
+    Slots(u) = rn
     cnt += 1
   WEND :                                                     return 0
 END function
-
-
-/'* \brief Function to add a device to the PruW1::Slots array.
-\param N The device ID to add.
-\returns The current maximum index of the dynamic PruW1::Slots array.
-
-FIXME
-
-\since 0.0
-'/
-FUNCTION PruW1.addSensor(BYVAL N AS ULONGINT) AS INTEGER
-  VAR u = UBOUND(Slots) + 1
-  REDIM PRESERVE Slots(u)
-  Slots(u) = N
-  RETURN u
-END FUNCTION
 
 
 /'* \brief Send a byte (eight bits) to the bus.
@@ -171,12 +162,7 @@ ROM command.
 \since 0.0
 '/
 SUB PruW1.sendByte(BYVAL V AS UInt8)
-  waitDRam0(.)
-  DEBUG(!"\nsendByte: " & HEX(V, 2) & " " & BIN(V, 8) & " ")
-  DRam[4] = V
-  DRam[0] = 30 + 1 SHL 8
-  waitDRam0(>)
-  PROTO
+  PRUCALL(CMD_SEND + 1 SHL 8,DRam[4] = V,"sendByte: " & HEX(V, 2) & " (&b" & BIN(V, 8) & ")")
 END SUB
 
 
@@ -189,17 +175,12 @@ single device, ie. to read its scratchpad.
 \since 0.0
 '/
 SUB PruW1.sendRom(BYVAL V AS ULONGINT)
-  waitDRam0(.)
-  *CAST(ULONGINT PTR, @DRam[4]) = V
-  DEBUG(!"\nsendRom: " & HEX(PEEK(ULONGINT, @DRam[4]), 16) & " ")
-  DRam[0] = 30 + 8 SHL 8
-  waitDRam0(>)
-  PROTO
+  PRUCALL(CMD_SEND + 8 SHL 8,*CAST(ULONGINT PTR, @DRam[4]) = V,"sendRom: " & HEX(PEEK(ULONGINT, @DRam[4]), 16))
 END SUB
 
 
 /'* \brief Receive a block of data (usually 9 bytes).
-\param N The number of bytes to read (receive).
+\param N The number of bytes to read (maximum 240).
 \returns The number of bytes read.
 
 This function triggers the bus to receive a block of bytes. Parameter
@@ -210,13 +191,8 @@ offset `&h10`.
 \since 0.0
 '/
 FUNCTION PruW1.recvBlock(BYVAL N AS UInt8) AS UInt8
-  waitDRam0(.)
-  DEBUG(!"\nrecvBlock: " & N & " CMD ...")
-  DRam[0] = 20 + N SHL 8
-  DEBUG(" start " & HEX(DRam[0], 4))
-  waitDRam0(.)
-  DEBUG(" done")
-  PROTO
+  IF N > 240 THEN                     Errr = @"block too big" : RETURN 0
+  PRUCALL(CMD_RECV + N SHL 8,,"recvBlock: " & N)
   RETURN N
 END FUNCTION
 
@@ -230,14 +206,7 @@ value is the byte received.
 \since 0.0
 '/
 FUNCTION PruW1.recvByte()AS UInt8
-  waitDRam0(.)
-  DEBUG(!"\nrecvByte:")
-  DEBUG("  CMD ...")
-  DRam[0] = 20 + 1 SHL 8
-  DEBUG(" start " & HEX(DRam[0], 4))
-  waitDRam0(.)
-  DEBUG(" done")
-  PROTO
+  PRUCALL(CMD_RECV + 1 SHL 8,,"recvByte: ")
   RETURN DRam[4] AND &hFF
 END FUNCTION
 
@@ -268,11 +237,7 @@ are responding, the return value is 1.
 \since 0.0
 '/
 FUNCTION PruW1.resetBus() AS UInt8
-  waitDRam0(.)
-  DEBUG(!"\nresetBus:")
-  DRam[0] = 10
-  waitDRam0(.)
-  PROTO
+  PRUCALL(CMD_RESET,,"resetBus:")
   RETURN DRam[4] AND &b1
 END FUNCTION
 
@@ -298,23 +263,22 @@ FUNCTION PruW1.calcCrc(BYVAL N AS UInt8) AS UInt8
 END FUNCTION
 
 
-/'* \brief Print the log data to STDOUT.
+/'* \brief Print the debugging log data to STDOUT.
 \param N The number of states to output.
 
-FIXME
+This function outputs the state of the bus data line for the debug
+logging feature. When debugging is enabled the function gets called
+after each operation and prints lines of 70 characters for each
+transfered bit. See section \ref ChaDebug for details.
 
 \since 0.0
 '/
 SUB PruW1.prot()
   STATIC AS UInt32 p = 64, b = 0
   ?
-'?"No of bits: " & DRam[3]
   FOR i AS INTEGER = 1 TO DRam[3]
-    IF i MOD 70 THEN
-      IF BIT(DRam[p], b) THEN ?"-"; ELSE ?"_";
-    ELSE
-      IF BIT(DRam[p], b) THEN ?"-" ELSE ?"_"
-    END IF
+    IF BIT(DRam[p], b) THEN ?"-"; ELSE ?"_";
+    IF 0 = i MOD 70 THEN ?
     IF b < 31 THEN b += 1 ELSE b = 0 : IF p < 2047 THEN p += 1 ELSE p = 64
   NEXT : ?
 END SUB

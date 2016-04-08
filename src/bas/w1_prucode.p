@@ -2,10 +2,7 @@
 //  compile for .bi output
 //    pasm -V3 -y -CPru_W1 w1_prucode.p
 
-#define CMD_TRIP  1
-#define CMD_RESET 10
-#define CMD_RECV  20
-#define CMD_SEND  30
+#include "w1_prucode.hp"
 
 #define DRam C24
 #define DIN 0x38
@@ -20,19 +17,19 @@
 #define DATC r4.b2
 #define DATD r4.b0
 #define uSEC r5
-#define CMD r6
-#define XX r8
-#define XY r9
+#define CMD  r6
+#define XX   r8
+#define DebC r9
 
 #define OE r10
 #define UR r11
 #define U2 r12
 
-// DRam:
+// memory usage DRam:
 // 00 CMD
 // 04 DeAd
 // 08 Msk1
-// 0C FE
+// 0C DebC
 // 10 Data
 // 100 Debug (pin P9_14)
 
@@ -50,7 +47,7 @@
 
 .origin 0
 LDI  XX, 0x100
-LDI  XY, 0x0
+LDI  DebC, 0x0
 
 ZERO &r0, 4             // clear register R0
 MOV  DeAd, 0x22020      // load address
@@ -63,8 +60,8 @@ XOR  Msk0, Msk0, Msk1
 SWITCH_INP
 
 main_loop:
-  SBCO XY,  DRam, 0x0C, 4    // save bit counter
-  LDI  XY,  0                // reset counter
+  SBCO DebC,  DRam, 0x0C, 4    // save bit counter
+  LDI  DebC,  0                // reset counter
   LDI  CMD, 0
   SBCO CMD, DRam, 0x00, 4    // clear command
 
@@ -241,8 +238,6 @@ Delay:
   SUB  UR, UR, 1        // decrease counter
   QBLT delayCnt, UR, 1  // check end
 
-  //LBBO UR, DeAd, DIN, 4 // read DATAIN
-  //QBBC noBit, UR, 18
   LBBO UR, DeAd, DIN, 4*2  // read DATAIN + DATAOUT
   OR   UR, UR, U2          // or both together
   AND  UR, UR, Msk1        // mask our bit
@@ -258,7 +253,7 @@ Delay:
   LDI  XX, 0x100              // reset memory pointer
 
   delayCont:
-  ADD  XY, XY, 1        // increase bit counter
+  ADD  DebC, DebC, 1    // increase bit counter
   SUB  uSEC, uSEC, 1    // decrease usec counter
   QBLT Delay, uSEC, 0   // check usec counter
   RET
