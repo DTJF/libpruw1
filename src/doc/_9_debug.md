@@ -72,7 +72,7 @@ set bit the line gets high immediately (bit = 1)
 ______----------------------------------------------------------------
 ~~~
 
-otherwise after a certain time of maximum 54 us (bit = 0).
+Otherwise it gets high after a certain time of maximum 54 us (bit = 0).
 
 ~~~{.txt}
 ________________________----------------------------------------------
@@ -84,10 +84,11 @@ first.
 
 ### Special Sequences  {#SecDbgSpecial}
 
-Besides the bit transfer special sequences are used. In the reset
-sequence, sent before each new communication, the master puts the bus
-down for 480 us and then listens for a presence signal from devices,
-like
+Besides the standard bit transfer special sequences are used.
+
+The reset sequence is used to start any new communication. The master
+puts the bus down for 480 us and then switches to input mode and
+listens for a presence signal from any devices, like
 
 ~~~{.txt}
 resetBus: command: 0020 .
@@ -107,8 +108,9 @@ _________________________________________-----------------------------
 --------------------------------------------------
 ~~~
 
-And the so called tripple sequence is used to scan the bus for device
-IDs. Two bits get read and one bit get sent by the master, like
+And the so called tripple sequence is used after the SEARCH_ROM command
+in order to scan the bus for device IDs. Two bits get read and one bit
+get sent by the master, like
 
 ~~~{.txt}
 tripple: command: 0010 .
@@ -136,11 +138,10 @@ At the end of the last line the high state isn't stable. In that case
 it was caused by a weak connection of the pullup resitor. Disturbances
 may also have other reasons, ie. electro magnetical interferences.
 
-The logging feature may help you to optimize your bus installation.
-
 
 # Bus Checking {#SecDbgCheck}
 
+The logging feature may help you to optimize your bus installation.
 Once you installed the bus with all sensors, check the signals with the
 logging feature. You're lucky if you see signals as in section \ref
 SecDbgSuccess. Your bus works fine.
