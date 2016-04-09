@@ -46,7 +46,7 @@
 .endm
 
 .origin 0
-LDI  XX, 0x100
+LDI  XX, LOG_BASE*4
 LDI  DebC, 0x0
 
 ZERO &r0, 4             // clear register R0
@@ -250,7 +250,7 @@ Delay:
   LDI  XX.w2, 0               // reset data and bit counter
   ADD  XX.w0, XX.w0, 1        // increase memory pointer
   QBBC delayCont, XX.w0, 13   // check upper bound
-  LDI  XX, 0x100              // reset memory pointer
+  LDI  XX, LOG_BASE*4         // reset memory pointer
 
   delayCont:
   ADD  DebC, DebC, 1    // increase bit counter

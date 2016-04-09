@@ -24,6 +24,9 @@ preprocessor blocks that never get parsed.
 \def CMD_SEND
 \brief The command to initiate a bus send operation.
 
+\def LOG_BASE
+\brief The pointer to the first byte of logs in DRam memory (4 byte access).
+
 */
 
 Swap the following two lines in order to compile with debugging features.
@@ -34,3 +37,5 @@ Swap the following two lines in order to compile with debugging features.
 #define CMD_TRIP  32
 #define CMD_RECV  48
 #define CMD_SEND  64
+
+#define LOG_BASE  80

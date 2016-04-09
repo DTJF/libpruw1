@@ -180,18 +180,24 @@ END SUB
 
 
 /'* \brief Receive a block of data (usually 9 bytes).
-\param N The number of bytes to read (maximum 240).
+\param N The number of bytes to read.
 \returns The number of bytes read.
 
 This function triggers the bus to receive a block of bytes. Parameter
 `N` specifies the number of bytes to read. The return value is the
-number of bytes read. The data bytes are in the PRU DRAM, starting at
-offset `&h10`.
+number of bytes read, or 0 (zero) in case of an error (message text in
+PruW1::Errr). The received data bytes are in the PruW1::DRam, starting
+at byte offset `&h10` (= DRam[4]).
+
+\note When compiled with debug features, the maximum block size is 112
+      bytes, due to limited size of logging memory (PruW1::DRam)
 
 \since 0.0
 '/
 FUNCTION PruW1.recvBlock(BYVAL N AS UInt8) AS UInt8
-  IF N > 240 THEN                     Errr = @"block too big" : RETURN 0
+#IFDEF __PRUW1_DEBUG__
+  IF N > 112 THEN Errr = @"block too big maximum 112 bytes in DEBUG" : RETURN 0
+#ENDIF
   PRUCALL(CMD_RECV + N SHL 8,,"recvBlock: " & N)
   RETURN N
 END FUNCTION
@@ -274,12 +280,12 @@ transfered bit. See section \ref ChaDebug for details.
 \since 0.0
 '/
 SUB PruW1.prot()
-  STATIC AS UInt32 p = 64, b = 0
+  STATIC AS UInt32 p = LOG_BASE, b = 0
   ?
   FOR i AS INTEGER = 1 TO DRam[3]
     IF BIT(DRam[p], b) THEN ?"-"; ELSE ?"_";
     IF 0 = i MOD 70 THEN ?
-    IF b < 31 THEN b += 1 ELSE b = 0 : IF p < 2047 THEN p += 1 ELSE p = 64
+    IF b < 31 THEN b += 1 ELSE b = 0 : IF p < 2047 THEN p += 1 ELSE p = LOG_BASE
   NEXT : ?
 END SUB
 

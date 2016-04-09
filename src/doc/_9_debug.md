@@ -8,7 +8,7 @@ and it can log the state of the data line at a fixed sampling rate of 1
 us (1 MHz).
 
 Those features have to get compiled in to the library. Define symbol
-`__PRUW1_DEBUG__` inf file w1_prucode.hp to enable them. Then
+`__PRUW1_DEBUG__` in file w1_prucode.hp to enable them. Then
 re-compile the library.
 
 
@@ -29,24 +29,26 @@ Dots behind the command number indicate that the ARM CPU is waiting for
 the PRU. Below that header line the state of the bus data line (DQ) is
 logged in form of lines of characters. Each character stands for one
 micro second, the minus character (dotted line) indicates high state,
-and underscore characters indicate low.
+and underscore characters indicate low state. Find examples in the
+following sections.
 
-The W1 bus works with precize time slots, transmitting a bit takes 70
-us, so the output has one line (70 characters) per bit.
+The one wire bus works with precise time slots. Transmitting a bit
+takes 70 us. Each line of output (70 characters) represents the
+transmission of a single bit.
 
 
 ## Successful Transmission {#SecDbgSuccess}
 
 In case of successful transmission you'll see flat lines toggling
 between the high and low states. Each line starts in low state for 6
-us. That's the master signal to start the next data transfer. The rest
+us. That's the masters signal to start the next data transfer. The rest
 of the line depends on the action.
 
 
 ### Output  {#SecDbgOut}
 
 In case of output the master (BBB) controlls the DQ line. First, the
-line gets low for 6 us and depending on the desired transmission the
+line gets low for 6 us and, depending on the desired transmission, the
 line gets high immediately (bit = 1)
 
 ~~~{.txt}
