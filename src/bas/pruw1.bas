@@ -314,11 +314,12 @@ END FUNCTION
 \param Rom The pointer where to find the data received from the device.
 \returns The temperature (high byte = decimal value, low byte = digits).
 
-This function decodes the temperature value from a DS18B20 sensor (such
-sensors have `&h20` in the lowest byte of their ID). The returned value
-contains the temperature in grad Celsius in the high byte and the
-decimal places in the low byte. Divide the value by 256 to get a real
-number containing the temperatur in grad Celsius.
+This function decodes the temperature value from a newer Dallas sensor
+(the lowest byte in the ID of such sensors is either `&h20`, `&h22`,
+`&h28`, `&h3B` or `&h42`). The returned value contains the temperature
+in grad Celsius in the high byte and the decimal places in the low
+byte. Divide the value by 256 to get a real number containing the
+temperatur in grad Celsius.
 
 Parameter `Rom` is usually the adress of PruW1::DRam[4].
 

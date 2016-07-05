@@ -29,7 +29,7 @@ DO
   'IF io->config() THEN _
                'PRINT "libpruio config failed (" & *.Errr & ")" : exit do
 
-  VAR w1 = NEW PruW1(io, P9_17) '*< Pointer to libpruw1 instance.
+  VAR w1 = NEW PruW1(io, P9_15) '*< Pointer to libpruw1 instance.
   DO : WITH *w1
     IF .Errr THEN _
           ?"w1 CTOR failed (" & *.Errr & "/" & *io->Errr & ")" : EXIT DO
@@ -49,7 +49,7 @@ DO
 
       FOR s AS INTEGER = 0 TO UBOUND(.Slots)
         SELECT CASE AS CONST PEEK(UBYTE, @.Slots(s))
-        CASE &h10, &h22, &h28, &h3B, &h42 ' all Dallas sensor types
+        CASE &h10, &h20, &h22, &h28, &h3B, &h42 ' all Dallas sensor types
         CASE ELSE                                         : CONTINUE FOR ' no dallas sensor
         END SELECT
 

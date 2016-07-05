@@ -162,11 +162,52 @@ In order to test the installation, build and run an example application
 
 ~~~{.txt}
 make examples
-src/examples/dallas
+sudo src/examples/dallas
 ~~~
 
-The example uses header pin `P9_17` for the one-wire bus. Connect this
+The example uses header pin `P9_15` for the one-wire bus. Connect this
 pin by a pull-up resistor (4k7) to `P9_03` (3V3) and connect your
-DS18S20 sensors to that bus. The program first scans the sensor IDs and
+Dallas sensors to that bus. The program first scans the sensor IDs and
 lists them on the command line output. Further output contains eleven
-blocks of sensor data, sensor ID and temperature in each line.
+blocks of sensor data, sensor ID and temperature in degree centigrade
+in each line, like
+
+~~~{.txt}
+libpruw1/build$ sudo src/examples/dallas
+
+found device 0, ID: D1000802E7B0AA10
+found device 1, ID: B8000802E824BA10
+
+sensor D1000802E7B0AA10 --> OK: 26.125
+sensor B8000802E824BA10 --> OK: 26.1875
+
+sensor D1000802E7B0AA10 --> OK: 26.125
+sensor B8000802E824BA10 --> OK: 26.1875
+
+sensor D1000802E7B0AA10 --> OK: 26.125
+sensor B8000802E824BA10 --> OK: 26.1875
+
+sensor D1000802E7B0AA10 --> OK: 26.1875
+sensor B8000802E824BA10 --> OK: 26.25
+
+sensor D1000802E7B0AA10 --> OK: 26.1875
+sensor B8000802E824BA10 --> OK: 26.25
+
+sensor D1000802E7B0AA10 --> OK: 26.1875
+sensor B8000802E824BA10 --> OK: 26.1875
+
+sensor D1000802E7B0AA10 --> OK: 26.1875
+sensor B8000802E824BA10 --> OK: 26.25
+
+sensor D1000802E7B0AA10 --> OK: 26.25
+sensor B8000802E824BA10 --> OK: 26.25
+
+sensor D1000802E7B0AA10 --> OK: 26.1875
+sensor B8000802E824BA10 --> OK: 26.25
+
+sensor D1000802E7B0AA10 --> OK: 26.1875
+sensor B8000802E824BA10 --> OK: 26.25
+
+sensor D1000802E7B0AA10 --> OK: 26.25
+sensor B8000802E824BA10 --> OK: 26.25
+~~~
