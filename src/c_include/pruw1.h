@@ -137,7 +137,7 @@ pruw1* pruw1_new(pruio *P, UInt8 B);
 
 \since 0.0
 */
-void pruio_destroy(pruw1* W1);
+void pruw1_destroy(pruw1* W1);
 
 /** \brief Function to scan the bus for all devices.
 \param SearchType The search type (defaults to &hF0).
@@ -158,7 +158,7 @@ Slots, using function getSlotsSize().
 
 \since 0.0
 */
-char *scanBus(UInt8 SearchType);
+char *pruw1_scanBus(UInt8 SearchType);
 
 
 /** \brief Send a byte (eight bits) to the bus.
@@ -169,7 +169,7 @@ ROM command.
 
 \since 0.0
 */
-void sendByte(UInt8 V);
+void pruw1_sendByte(UInt8 V);
 
 
 /** \brief Send a ROM ID to the bus (to select a device).
@@ -180,7 +180,7 @@ single device, ie. to read its scratchpad.
 
 \since 0.0
 */
-void sendRom(UInt64 V);
+void pruw1_sendRom(UInt64 V);
 
 
 /** \brief Receive a block of data (usually 9 bytes).
@@ -198,7 +198,7 @@ at byte offset `&h10` (= DRam[4]).
 
 \since 0.0
 */
-UInt8 recvBlock(UInt8 N);
+UInt8 pruw1_recvBlock(UInt8 N);
 
 
 /** \brief Receive a single byte (8 bit).
@@ -209,7 +209,7 @@ value is the byte received.
 
 \since 0.0
 */
-UInt8 recvByte();
+UInt8 pruw1_recvByte();
 
 
 /** \brief Get the state of the data line.
@@ -221,7 +221,7 @@ after the PruIo::config() call.
 
 \since 0.0
 */
-UInt8 getIn();
+UInt8 pruw1_getIn();
 
 
 /** \brief Send the reset signal to the bus.
@@ -235,7 +235,7 @@ are responding, the return value is 1.
 
 \since 0.0
 */
-UInt8 resetBus();
+UInt8 pruw1_resetBus();
 
 
 /** \brief Compute the CRC checksum for data package.
@@ -251,15 +251,26 @@ PruW1::readBlock() call).
 
 \since 0.0
 */
-UInt8 calcCrc(UInt8 N);
+UInt8 pruw1_calcCrc(UInt8 N);
 
 
-// \brief Property to get size of array PruW1::Slots from C.
-int getSlotsSize (pruw1 *W1);
+/** \brief Property to get size of array PruW1::Slots from C.
+\returns The number of elements array PruW1::Slots.
+
+Auxiliary function to work aroung a missing feature in C syntax.
+
+\since 0.0
+*/
+int pruw1_getSlotsSize (pruw1 *W1);
 
 
-// \brief Function to empty the array PruW1::Slots from C.
-void eraseSlots(pruw1 *W1);
+/** \brief Function to empty the array PruW1::Slots from C.
+
+Auxiliary function to work aroung a missing feature in C syntax.
+
+\since 0.0
+*/
+void pruw1_eraseSlots(pruw1 *W1);
 
 
 #ifdef __cplusplus

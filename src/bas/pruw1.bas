@@ -305,7 +305,7 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 
 \since 0.0
 '/
-FUNCTION T_fam10(BYVAL Rom AS UBYTE PTR) AS SHORT
+FUNCTION T_fam10(BYVAL Rom AS UBYTE PTR) AS SHORT EXPORT
   RETURN (IIF(Rom[1], Rom[0] - 256, Rom[0]) SHR 1) SHL 8 + (Rom[7] - Rom[6] - 4) SHL 4
 END FUNCTION
 
@@ -324,6 +324,6 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 
 \since 0.0
 '/
-FUNCTION T_fam20(BYVAL Rom AS UBYTE PTR) AS SHORT
+FUNCTION T_fam20(BYVAL Rom AS UBYTE PTR) AS SHORT EXPORT
   RETURN PEEK(SHORT, Rom)
 END FUNCTION
