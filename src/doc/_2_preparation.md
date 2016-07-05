@@ -94,6 +94,7 @@ websides, linked by the name in the first column.
    cmake ..
    make
    sudo make install
+   sudo ldconfig
    sudo make init
    ~~~
    \note Omit `sudo` in case of non-LINUX systems.
@@ -149,6 +150,7 @@ cd build
 cmake ..
 make
 sudo make install
+sudo ldconfig
 ~~~
 
 This will build the library binary and install it to `/usr/local/lib`.

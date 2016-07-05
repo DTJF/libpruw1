@@ -115,6 +115,7 @@ typedef struct pruw1{
 /** \brief Wrapper function for the constructor PruW1::PruW1().
 \param P A pointer to the libpruio instance (for pinmuxing).
 \param B The header pin to use as W1 bus data line.
+\returns A pointer to the new instance, call pruw1_destroy() when done.
 
 The constructor is designed to
 
@@ -133,13 +134,14 @@ communication).
 pruw1* pruw1_new(pruio *P, UInt8 B);
 
 /** \brief Wrapper function for the destructor PruW1::~PruW1.
-\param W1 The pointer of the instance.
+\param W1 The driver instance.
 
 \since 0.0
 */
 void pruw1_destroy(pruw1* W1);
 
 /** \brief Function to scan the bus for all devices.
+\param W1 The driver instance.
 \param SearchType The search type (defaults to &hF0).
 \returns An error message or `0` (zero) on success.
 
@@ -158,10 +160,11 @@ Slots, using function getSlotsSize().
 
 \since 0.0
 */
-char *pruw1_scanBus(UInt8 SearchType);
+char *pruw1_scanBus(pruw1* W1, UInt8 SearchType);
 
 
 /** \brief Send a byte (eight bits) to the bus.
+\param W1 The driver instance.
 \param V The value to send.
 
 This procedure sends a byte to the bus. It's usually used to issue a
@@ -169,10 +172,11 @@ ROM command.
 
 \since 0.0
 */
-void pruw1_sendByte(UInt8 V);
+void pruw1_sendByte(pruw1* W1, UInt8 V);
 
 
 /** \brief Send a ROM ID to the bus (to select a device).
+\param W1 The driver instance.
 \param V The ROM ID (8 btes) to send.
 
 This procedure sends a ROM ID to the bus. It's usually used to adress a
@@ -180,10 +184,11 @@ single device, ie. to read its scratchpad.
 
 \since 0.0
 */
-void pruw1_sendRom(UInt64 V);
+void pruw1_sendRom(pruw1* W1, UInt64 V);
 
 
 /** \brief Receive a block of data (usually 9 bytes).
+\param W1 The driver instance.
 \param N The number of bytes to read.
 \returns The number of bytes read.
 
@@ -198,10 +203,11 @@ at byte offset `&h10` (= DRam[4]).
 
 \since 0.0
 */
-UInt8 pruw1_recvBlock(UInt8 N);
+UInt8 pruw1_recvBlock(pruw1* W1, UInt8 N);
 
 
 /** \brief Receive a single byte (8 bit).
+\param W1 The driver instance.
 \returns The byte read from the bus.
 
 This function triggers the bus to receive a single byte. The return
@@ -209,10 +215,11 @@ value is the byte received.
 
 \since 0.0
 */
-UInt8 pruw1_recvByte();
+UInt8 pruw1_recvByte(pruw1* W1);
 
 
 /** \brief Get the state of the data line.
+\param W1 The driver instance.
 \returns The state (1 = high, 0 = low)
 
 This function returns the current state of the GPIO line used for the
@@ -221,10 +228,11 @@ after the PruIo::config() call.
 
 \since 0.0
 */
-UInt8 pruw1_getIn();
+UInt8 pruw1_getIn(pruw1* W1);
 
 
 /** \brief Send the reset signal to the bus.
+\param W1 The driver instance.
 \returns The presence pulse from the bus.
 
 This function sends the reset signal to the bus. It uses special
@@ -235,10 +243,11 @@ are responding, the return value is 1.
 
 \since 0.0
 */
-UInt8 pruw1_resetBus();
+UInt8 pruw1_resetBus(pruw1* W1);
 
 
 /** \brief Compute the CRC checksum for data package.
+\param W1 The driver instance.
 \param N The length of the package in bytes.
 \returns The CRC checksum for a data package (0 = success).
 
@@ -251,10 +260,11 @@ PruW1::readBlock() call).
 
 \since 0.0
 */
-UInt8 pruw1_calcCrc(UInt8 N);
+UInt8 pruw1_calcCrc(pruw1* W1, UInt8 N);
 
 
 /** \brief Property to get size of array PruW1::Slots from C.
+\param W1 The driver instance.
 \returns The number of elements array PruW1::Slots.
 
 Auxiliary function to work aroung a missing feature in C syntax.
@@ -265,6 +275,7 @@ int pruw1_getSlotsSize (pruw1 *W1);
 
 
 /** \brief Function to empty the array PruW1::Slots from C.
+\param W1 The driver instance.
 
 Auxiliary function to work aroung a missing feature in C syntax.
 
