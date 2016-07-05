@@ -32,7 +32,7 @@ SUB pruw1_destroy CDECL ALIAS "pruw1_destroy"( _
 END SUB
 
 '* \brief Wrapper function for PruW1::scanBus().
-FUNCTION scanBus ALIAS "pruw1_scanBus" CDECL( _
+FUNCTION pruw1_scanBus CDECL ALIAS "pruw1_scanBus"( _
   BYVAL W1 AS PruW1 PTR, _
   BYVAL SearchType AS UInt8 = &hF0)AS ZSTRING PTR EXPORT
 
@@ -40,7 +40,7 @@ FUNCTION scanBus ALIAS "pruw1_scanBus" CDECL( _
 END FUNCTION
 
 '* \brief Wrapper function for PruW1::sendByte().
-SUB sendByte ALIAS "pruw1_sendByte" CDECL( _
+SUB pruw1_sendByte CDECL ALIAS "pruw1_sendByte"( _
   BYVAL W1 AS PruW1 PTR, _
   BYVAL V AS UInt8) EXPORT
 
@@ -48,7 +48,7 @@ SUB sendByte ALIAS "pruw1_sendByte" CDECL( _
 END SUB
 
 '* \brief Wrapper function for PruW1::sendByte().
-SUB sendRom ALIAS "pruw1_sendRom" CDECL( _
+SUB pruw1_sendRom CDECL ALIAS "pruw1_sendRom"( _
   BYVAL W1 AS PruW1 PTR, _
   BYVAL V AS ULONGINT) EXPORT
 
@@ -56,7 +56,7 @@ SUB sendRom ALIAS "pruw1_sendRom" CDECL( _
 END SUB
 
 '* \brief Wrapper function for PruW1::recvBlock().
-FUNCTION recvBlock ALIAS "pruw1_recvBlock" CDECL( _
+FUNCTION pruw1_recvBlock CDECL ALIAS "pruw1_recvBlock"( _
   BYVAL W1 AS PruW1 PTR, _
   BYVAL N AS UInt8) AS UInt8 EXPORT
 
@@ -64,28 +64,28 @@ FUNCTION recvBlock ALIAS "pruw1_recvBlock" CDECL( _
 END FUNCTION
 
 '* \brief Wrapper function for PruW1::recvByte().
-FUNCTION recvByte ALIAS "pruw1_recvByte" CDECL( _
+FUNCTION pruw1_recvByte CDECL ALIAS "pruw1_recvByte"( _
   BYVAL W1 AS PruW1 PTR) AS UInt8 EXPORT
 
   RETURN W1->recvByte()
 END FUNCTION
 
 '* \brief Wrapper function for PruW1::getIn().
-FUNCTION getIn ALIAS "pruw1_getIn" CDECL( _
+FUNCTION pruw1_getIn CDECL ALIAS "pruw1_getIn"( _
   BYVAL W1 AS PruW1 PTR) AS UInt8 EXPORT
 
   RETURN W1->getIn()
 END FUNCTION
 
 '* \brief Wrapper function for PruW1::resetBus().
-FUNCTION resetBus ALIAS "pruw1_resetBus" CDECL( _
+FUNCTION pruw1_resetBus CDECL ALIAS "pruw1_resetBus"( _
   BYVAL W1 AS PruW1 PTR) AS UInt8 EXPORT
 
   RETURN W1->resetBus()
 END FUNCTION
 
 '* \brief Wrapper function for PruW1::calcCrc().
-FUNCTION calcCrc ALIAS "pruw1_calcCrc" CDECL( _
+FUNCTION pruw1_calcCrc CDECL ALIAS "pruw1_calcCrc"( _
   BYVAL W1 AS PruW1 PTR, _
   BYVAL N AS UInt8) AS UInt8 EXPORT
 
@@ -93,7 +93,7 @@ FUNCTION calcCrc ALIAS "pruw1_calcCrc" CDECL( _
 END FUNCTION
 
 '* \brief Property to get size of array PruW1::Slots from C.
-FUNCTION getSlotsSize ALIAS "pruw1_getSlotsSize" CDECL( _
+FUNCTION pruw1_getSlotsSize CDECL ALIAS "pruw1_getSlotsSize"( _
   BYVAL W1 AS PruW1 PTR) AS LONG EXPORT
 
   RETURN UBOUND(W1->Slots)
@@ -101,7 +101,7 @@ END FUNCTION
 
 
 '* \brief Function to empty the array PruW1::Slots from C.
-SUB eraseSlots ALIAS "pruw1_eraseSlots" CDECL( _
+SUB pruw1_eraseSlots CDECL ALIAS "pruw1_eraseSlots"( _
   BYVAL W1 AS PruW1 PTR) EXPORT
 
   REDIM W1->Slots(-1)

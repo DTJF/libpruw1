@@ -165,7 +165,7 @@ make examples
 src/examples/dallas
 ~~~
 
-The example uses header pin `P9_16` for the one-wire bus. Connect this
+The example uses header pin `P9_17` for the one-wire bus. Connect this
 pin by a pull-up resistor (4k7) to `P9_03` (3V3) and connect your
 DS18S20 sensors to that bus. The program first scans the sensor IDs and
 lists them on the command line output. Further output contains eleven

@@ -29,9 +29,10 @@ DO
   'IF io->config() THEN _
                'PRINT "libpruio config failed (" & *.Errr & ")" : exit do
 
-  VAR w1 = NEW PruW1(io, P9_16) '*< Pointer to libpruw1 instance.
+  VAR w1 = NEW PruW1(io, P9_17) '*< Pointer to libpruw1 instance.
   DO : WITH *w1
-    IF .Errr THEN           ?"w1 CTOR failed (" & *.Errr & ")" : EXIT DO
+    IF .Errr THEN _
+          ?"w1 CTOR failed (" & *.Errr & "/" & *io->Errr & ")" : EXIT DO
     IF .scanBus() THEN _
                         PRINT"scanBus failed (" & *.Errr & ")" : EXIT DO
     ?
