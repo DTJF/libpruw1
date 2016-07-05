@@ -1,6 +1,5 @@
 #ifdef FOR_DOXYGEN_ONLY
-/*!
-\file w1_prucode.hp
+/*! \file w1_prucode.hp
 \brief This file synchronizes parameters between FreeBASIC, C and PASM source code.
 
 This file is used in FreeBASIC, C and PASM source code to synchonize
@@ -12,7 +11,11 @@ preprocessor blocks that never get parsed.
 
 \note We cannot use hexadecimal numbers here since syntaxes are different.
 
-\def __PRUW1_DEBUG__
+\since 0.0
+*/
+
+/*!
+\def __PRUW1_MONITOR__
 \brief The switch to enable debugging features.
 
 \def CMD_TRIP
@@ -26,11 +29,10 @@ preprocessor blocks that never get parsed.
 
 \def LOG_BASE
 \brief The pointer to the first byte of logs in DRam memory (4 byte access).
-
 */
 
-Swap the following two lines in order to compile with debugging features.
-#define __PRUW1_DEBUG__
+// Swap the following two lines in order to compile with debugging features.
+#define __PRUW1_MONITOR__
 #endif
 
 #define CMD_RESET 16

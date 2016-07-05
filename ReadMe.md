@@ -1,11 +1,12 @@
-Welcome to *libpruw1* library,
+Welcome to (the currently experimental -- please report bugs -- version
+0.0 of) *libpruw1* library,
 
-- a one wire (W1) driver for ARM335x micro processors,
+- a [one wire (W1)](https://en.wikipedia.org/wiki/1-Wire) driver for AM335x micro processors,
 - designed for [Beaglebone hardware](http://www.beaglebone.org), providing
-- configuration of any GPIO as W1 bus, for
+- configuration of any GPIO as W1 bus (without additional hardware), for
 - sending digital output and receiving digital input from the bus, and
-- logging the bus data line state for debug purposes, but
-- does not support parasite power mode.
+- logging the bus data line state for debugging purposes, but
+- not supporting parasite power mode.
 
 *libpruw1* software runs on the host (ARM) and in parallel on a
 Programmable Realtime Unit SubSystem (= PRUSS or just PRU) for accurate
@@ -13,10 +14,10 @@ bus timing.
 
 The driver provides functions to
 
-- scan the bus for all devices
-- send a single byte or a block of bytes to the bus
-- receive a single byte or a block of bytes from the bus
-- calculate the CRC checksum for a block of data
+- scan the bus for all device IDs,
+- send a single byte or a block of eight bytes to the bus,
+- receive a single byte or a block of bytes from the bus,
+- calculate the CRC checksum for a block of data, and
 - compute the temperature from Dallas sensors series 10 and 20.
 
 The *libpruw1* project is [hosted at GitHub](https://github.com/DTJF/libpruw1). It's

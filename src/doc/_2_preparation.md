@@ -2,10 +2,7 @@ Preparation {#ChaPreparation}
 ===========
 \tableofcontents
 
-This chapter describes how to get libpruio working on your system. At
-the bottom you'll find a step by step guide to install the complete
-system. Eager users may skip the theory and jump to \ref
-SecInstallation directly.
+This chapter describes how to get libpruw1 working on your system.
 
 
 # Tools  {#SecTools}
@@ -31,6 +28,7 @@ packages in their distrubution management system (D).
 | --------------------------------------------------: | :--: | :------------------------------------------------------------- |
 | [fbc](http://www.freebasic.net)                     | M    | FreeBASIC compiler to compile the source code                  |
 | [fb_prussdrv](https://github.com/DTJF/fb_prussdrv)  | M    | PRU assembler to compile PRU code and libprussdrv              |
+| [libpruio](https://github.com/DTJF/libpruio)        | M    | Library used for pinmuxing                                     |
 | [dtc](https://git.kernel.org/cgit/utils/dtc/dtc.git)| M  D | Device tree compiler to create overlays                        |
 | [GIT](http://git-scm.com/)                          | R  D | Version control system to organize the files                   |
 | [CMake](http://www.cmake.org)                       | R  D | Build management system to build executables and documentation |
@@ -55,8 +53,8 @@ websides, linked by the name in the first column.
 
 -# Then make the FB compiler working:
    ~~~{.txt}
-   wget https://www.freebasic-portal.de/dlfiles/625/freebasic_1.01.0debian7_armhf.deb
-   sudo dpkg --install freebasic_1.01.0debian7_armhf.deb
+   wget https://www.freebasic-portal.de/dlfiles/625/freebasic_1.06.0debian7_armhf.deb
+   sudo dpkg --install freebasic_1.06.0debian7_armhf.deb
    sudo apt-get -f install
    ~~~
 
@@ -87,6 +85,19 @@ websides, linked by the name in the first column.
    ~~~
    \note Omit `sudo` in case of non-LINUX systems.
 
+-# Then install libpruio, using GIT and CMake. Execute the commands ???
+   ~~~{.txt}
+   git clone https://github.com/DTJF/libpruio
+   cd libpruio
+   mkdir build
+   cd build
+   cmake ..
+   make
+   sudo make install
+   sudo make init
+   ~~~
+   \note Omit `sudo` in case of non-LINUX systems.
+
 -# And finaly, install fb-doc (if wanted) by using GIT and CMake.
    Execute the commands
    ~~~{.txt}
@@ -113,8 +124,8 @@ helps users to get involved in to the development process). Get your
 copy and change to the source tree by executing
 
 ~~~{.txt}
-git clone https://github.com/DTJF/libpruio
-cd libpruio
+git clone https://github.com/DTJF/libpruw1
+cd libpruw1
 ~~~
 
 ## ZIP  {#SecGet_Zip}
@@ -127,3 +138,35 @@ the archive. Then change to the newly created folder.
 \note Zip files always contain the latest development version. You
       cannot switch to a certain point in the history.
 
+
+# Build Binary
+
+In order to perform an out of source build, execute
+
+~~~{.txt}
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+~~~
+
+This will build the library binary and install it to `/usr/local/lib`.
+The FB header file gets into the folder `BBB` in the FreeBASIC
+installation folder.
+
+
+# Test
+
+In order to test the installation, build and run an example application
+
+~~~{.txt}
+make examples
+src/examples/dallas
+~~~
+
+The example uses header pin `P9_16` for the one-wire bus. Connect this
+pin by a pull-up resistor (4k7) to `P9_03` (3V3) and connect your
+DS18S20 sensors to that bus. The program first scans the sensor IDs and
+lists them on the command line output. Further output contains eleven
+blocks of sensor data, sensor ID and temperature in each line.

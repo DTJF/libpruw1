@@ -2,15 +2,12 @@
 \brief The declarations for the PruW1 class.
 
 This file contains the declarations for the PruW1 class. Include it to
-compile against the library (`#INCLUDE ONCE "BBB/pruw1.bi"`).
+compile against the library (#`INCLUDE ONCE "BBB/pruw1.bi"`).
 
 \since 0.0
 '/
 
 #INCLUDE ONCE "BBB/pruio.bi"
-
-' uncomment the following line in order to get debugging messages
-'#DEFINE __PRUW1_DEBUG__
 
 ' forward declarations of helper functions
 DECLARE FUNCTION T_fam10(BYVAL AS UBYTE PTR) AS SHORT
@@ -31,7 +28,7 @@ TYPE PruW1
 
   DECLARE CONSTRUCTOR(BYVAL AS PruIo PTR, BYVAL AS Uint8)
   DECLARE DESTRUCTOR()
-  DECLARE FUNCTION scanBus(BYVAL AS UInt8 = &hF0)as zstring ptr
+  DECLARE FUNCTION scanBus(BYVAL AS UInt8 = &hF0)AS ZSTRING PTR
   DECLARE SUB sendByte(BYVAL AS UInt8)
   DECLARE SUB sendRom(BYVAL AS ULONGINT)
   DECLARE FUNCTION recvBlock(BYVAL AS UInt8) AS UInt8

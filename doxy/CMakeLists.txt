@@ -9,8 +9,9 @@ FB_DOCUMENTATION(
 BAS_SRC
   ${SRC_BAS}
   ${SRC_BI}
-  #${PASM_SRC}
 DEPENDS
+  ${PASM_SRC}.hp
+  "../src/doc/_1_introduction.md"
   "../src/doc/_2_preparation.md"
   "../src/doc/_9_debug.md"
   "../src/doc/_z_changelog.md"

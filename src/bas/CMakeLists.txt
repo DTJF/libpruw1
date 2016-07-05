@@ -1,5 +1,6 @@
 SET(SRC_BAS
   ${CMAKE_CURRENT_SOURCE_DIR}/pruw1.bas
+  ${CMAKE_CURRENT_SOURCE_DIR}/pruw1_C_wrapper.bas
   CACHE FILEPATH "BASIC source files" FORCE
   )
 

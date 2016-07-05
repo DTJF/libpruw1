@@ -11,7 +11,8 @@ functions to decode the temperature from the received data.
 #INCLUDE ONCE "w1_prucode.hp" ' PRU syncronization
 #INCLUDE ONCE "pruw1.bi" ' FB declarations
 
-#IFNDEF __PRUW1_DEBUG__
+#IFNDEF __PRUW1_MONITOR__
+ '* Macro to call a function on the PRU, DEBUG features disabled.
  #MACRO PRUCALL(_C_,_V_,_T_)
   WHILE DRam[0] : SLEEP 1 : WEND
   _V_
@@ -19,6 +20,7 @@ functions to decode the temperature from the received data.
   WHILE DRam[0] : SLEEP 1 : WEND
  #ENDMACRO
 #ELSE
+ '* Macro to call a function on the PRU, DEBUG features enabled.
  #MACRO PRUCALL(_C_,_V_,_T_)
   WHILE DRam[0] : SLEEP 1 : ?"."; : WEND
   _V_
@@ -98,15 +100,15 @@ END DESTRUCTOR
 \param SearchType The search type (defaults to &hF0).
 \returns An error message or `0` (zero) on success.
 
-This function scans the bus and list the IDs of the found devices (if
-any) in the array Slots. By default it uses the default search ROM
+This function scans the bus and collects the IDs of the found devices
+(if any) in the array Slots. By default it uses the default search ROM
 command (`&hF0`).
 
 Find the number of devices by evaluating the upper bound of array Slots.
 
 \note Usually the bus gets scanned once in the init process of an
       application. When you intend to use dynamic sensor connections
-      (plug them in and off), then you have to periodically re-scan the
+      (plug them in and out), then you have to periodically re-scan the
       bus. In that case clear the Slots array before each scan, in
       order to avoid double entries.
 
@@ -189,13 +191,13 @@ number of bytes read, or 0 (zero) in case of an error (message text in
 PruW1::Errr). The received data bytes are in the PruW1::DRam, starting
 at byte offset `&h10` (= DRam[4]).
 
-\note When compiled with debug features, the maximum block size is 112
+\note When compiled with monitor feature, the maximum block size is 112
       bytes, due to limited size of logging memory (PruW1::DRam)
 
 \since 0.0
 '/
 FUNCTION PruW1.recvBlock(BYVAL N AS UInt8) AS UInt8
-#IFDEF __PRUW1_DEBUG__
+#IFDEF __PRUW1_MONITOR__
   IF N > 112 THEN Errr = @"block too big maximum 112 bytes in DEBUG" : RETURN 0
 #ENDIF
   PRUCALL(CMD_RECV + N SHL 8,,"recvBlock: " & N)
@@ -269,13 +271,12 @@ FUNCTION PruW1.calcCrc(BYVAL N AS UInt8) AS UInt8
 END FUNCTION
 
 
-/'* \brief Print the debugging log data to STDOUT.
-\param N The number of states to output.
+/'* \brief Print the monitoring log data to STDOUT.
 
-This function outputs the state of the bus data line for the debug
-logging feature. When debugging is enabled the function gets called
-after each operation and prints lines of 70 characters for each
-transfered bit. See section \ref ChaDebug for details.
+This function outputs the state of the bus data line for the monitoring
+log feature. When monitoring is enabled at compile time, this function
+gets called after each operation and prints lines of 70 characters for
+each transfered bit. See section \ref ChaMonitor for details.
 
 \since 0.0
 '/
@@ -305,7 +306,7 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 \since 0.0
 '/
 FUNCTION T_fam10(BYVAL Rom AS UBYTE PTR) AS SHORT
-  RETURN IIF(Rom[1], Rom[0] - 256, Rom[0]) SHL 7 + (Rom[7] - Rom[6] - 4) SHL 4
+  RETURN (IIF(Rom[1], Rom[0] - 256, Rom[0]) SHR 1) SHL 8 + (Rom[7] - Rom[6] - 4) SHL 4
 END FUNCTION
 
 

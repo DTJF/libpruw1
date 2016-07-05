@@ -5,6 +5,9 @@ Changelog & Credits {#ChaChangelog}
 
 # Further Development {#SecFurtherVev}
 
+- Move PRU parameters to upper bound of DRam, so that libpruio can use
+  more memory for pre-triggers.
+
 - FIXME
 
 Feel free to send further ideas to the author (\Email).
@@ -12,7 +15,7 @@ Feel free to send further ideas to the author (\Email).
 
 # libpruw1-0.0 {#SecV-0-0}
 
-Released on 2016 May, FIXME.
+Released on 2016 July, 5.
 
 
 # Credits  {#SecCredits}

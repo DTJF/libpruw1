@@ -1,15 +1,14 @@
-Debugging Features {#ChaDebug}
+Monitoring Feature {#ChaMonitor}
 ==================
 \tableofcontents
 
-The driver has some debugging features to visualize the data
-transmissions on the bus. It can output the packages sent or received
-and it can log the state of the data line at a fixed sampling rate of 1
-us (1 MHz).
+The driver has a monitoring feature to visualize the data transmissions
+on the bus. The PRU logs the state of this pin at a fixed sampling rate
+of 1 us (1 MHz).
 
-Those features have to get compiled in to the library. Define symbol
-`__PRUW1_DEBUG__` in file w1_prucode.hp to enable them. Then
-re-compile the library.
+This feature has to get compiled in to the library. Define symbol
+`__PRUW1_MONITOR__` in file w1_prucode.hp to enable it. Then re-compile
+the library.
 
 
 # Logging Format {#SecDbgFormat}
@@ -42,20 +41,20 @@ transmission of a single bit.
 In case of successful transmission you'll see flat lines toggling
 between the high and low states. Each line starts in low state for 6
 us. That's the masters signal to start the next data transfer. The rest
-of the line depends on the action.
+of the line depends on the action, output or input.
 
 
 ### Output  {#SecDbgOut}
 
 In case of output the master (BBB) controlls the DQ line. First, the
 line gets low for 6 us and, depending on the desired transmission, the
-line gets high immediately (bit = 1)
+line gets high immediately (sent bit = 1)
 
 ~~~{.txt}
 ______----------------------------------------------------------------
 ~~~
 
-or after 60 us (bit = 0).
+or after 60 us (sent bit = 0).
 
 ~~~{.txt}
 ____________________________________________________________----------
@@ -68,13 +67,14 @@ Bits get send in low to high order, meaning the LSB gets sent first.
 In case of input the master (BBB) controlls the DQ line to start the
 transmission. The line gets low for 6 us. Then the line switches to
 input state and the responding device controls the level. In case of a
-set bit the line gets high immediately (bit = 1)
+set bit the line gets high immediately (received bit = 1)
 
 ~~~{.txt}
 ______----------------------------------------------------------------
 ~~~
 
-Otherwise it gets high after a certain time of maximum 54 us (bit = 0).
+Otherwise it gets high after a certain time of maximum 54 us (received
+bit = 0).
 
 ~~~{.txt}
 ________________________----------------------------------------------
@@ -110,9 +110,9 @@ _________________________________________-----------------------------
 --------------------------------------------------
 ~~~
 
-And the so called tripple sequence is used after the SEARCH_ROM command
-in order to scan the bus for device IDs. Two bits get read and one bit
-get sent by the master, like
+Another special signal is the so called tripple sequence. It's used
+after the SEARCH_ROM command in order to scan the bus for device IDs.
+Two bits get read and one bit gets sent by the master, like
 
 ~~~{.txt}
 tripple: command: 0010 .
@@ -152,7 +152,7 @@ Otherwise you have to do some optimization. The one wire bus isn't
 designed for long distances, especially when it's driven by 3V3 as on
 the BBB. So use three wires to connect devices (no parasite power mode)
 and try to shorten all cables to the minimum. Prefer a tree structure
-(devices connected to terminals by short cables) over star structure
+(devices connected to terminals by short cables) to star structure
 (each device has it's own cable to connect to the master). Do not place
 the cables near high power electrical loads nor their power lines. Try
 a stronger pullup restistor to optimize the signal, or try capacitors

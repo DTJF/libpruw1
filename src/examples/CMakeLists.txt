@@ -1,5 +1,6 @@
 SET(fb_tar
-  "allDS18S20"
+  "dallas"
+  "onlyDS18S20"
   )
 
 ADD_CUSTOM_TARGET(fb_examples DEPENDS ${fb_tar})

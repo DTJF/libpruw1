@@ -31,7 +31,7 @@
 // 08 Msk1
 // 0C DebC
 // 10 Data
-// 100 Debug (pin P9_14)
+// 100 Log data
 
 .macro SWITCH_INP
   LBBO OE,  DeAd, 0x34, 4  // load OE
@@ -60,8 +60,8 @@ XOR  Msk0, Msk0, Msk1
 SWITCH_INP
 
 main_loop:
-  SBCO DebC,  DRam, 0x0C, 4    // save bit counter
-  LDI  DebC,  0                // reset counter
+  SBCO DebC,  DRam, 0x0C, 4  // save bit counter
+  LDI  DebC,  0              // reset counter
   LDI  CMD, 0
   SBCO CMD, DRam, 0x00, 4    // clear command
 
@@ -231,9 +231,22 @@ sendcmd:
 
 JMP main_loop
 
-
 Delay:
-  LDI  UR, 100          // 100 cycles = 1 usec
+
+#ifndef __PRUW1_MONITOR__
+
+  LDI  UR, 98           // 100 cycles = 1 usec
+  delayCnt:
+  SUB  UR, UR, 1        // decrease counter
+  QBLT delayCnt, UR, 1  // check end
+
+  SUB  uSEC, uSEC, 1    // decrease usec counter
+  QBLT Delay, uSEC, 0   // check usec counter
+  RET
+
+#else
+
+  LDI  UR, 91           // 100 cycles = 1 usec
   delayCnt:
   SUB  UR, UR, 1        // decrease counter
   QBLT delayCnt, UR, 1  // check end
@@ -244,16 +257,23 @@ Delay:
   QBEQ noBit, UR, 0        // skip if zero
   SET  XX.b3, XX.b2        // .b3 data, .b2 bit counter
   noBit:
-  ADD  XX.b2, XX.b2, 1
-  QBGT delayCont, XX.b2, 8
+  ADD  XX.b2, XX.b2, 1        // increase bit counter
+  QBGT NoOpps, XX.b2, 8       // if no overflow, continue
   SBCO XX.b3, DRam, XX.w0, 1  // .w0 memory pointer
   LDI  XX.w2, 0               // reset data and bit counter
   ADD  XX.w0, XX.w0, 1        // increase memory pointer
   QBBC delayCont, XX.w0, 13   // check upper bound
   LDI  XX, LOG_BASE*4         // reset memory pointer
+  JMP  delayCont
+
+  NoOpps:
+  LOOP delayCont, 5     // wait 6 cycles
+  OR   UR, UR, UR
 
   delayCont:
   ADD  DebC, DebC, 1    // increase bit counter
   SUB  uSEC, uSEC, 1    // decrease usec counter
   QBLT Delay, uSEC, 0   // check usec counter
   RET
+
+#endif
