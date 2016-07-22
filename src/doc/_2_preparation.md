@@ -60,9 +60,8 @@ websides, linked by the name in the first column.
 
 -# Then make the FB version of prussdrv working: ???
    ~~~{.txt}
-   wget https://www.freebasic-portal.de/dlfiles/539/FB_prussdrv-0.0.tar.bz2
-   tar xjvf FB_prussdrv-0.0.tar.bz2
-   cd FB_prussdrv-0.0
+   git clone https://github.com/DTJF/fb_prussdrv
+   cd fb_prussdrv
    sudo su
    cp bin/libprussdrv.* /usr/local/lib
    ldconfig

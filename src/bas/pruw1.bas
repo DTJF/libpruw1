@@ -326,5 +326,5 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 \since 0.0
 '/
 FUNCTION T_fam20(BYVAL Rom AS UBYTE PTR) AS SHORT EXPORT
-  RETURN PEEK(SHORT, Rom)
+  RETURN PEEK(SHORT, Rom) SHL 4
 END FUNCTION
