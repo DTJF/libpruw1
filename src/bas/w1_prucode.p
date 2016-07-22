@@ -19,19 +19,19 @@
 #define uSEC r5
 #define CMD  r6
 #define XX   r8
-#define DebC r9
+#define MonC r9
 
 #define OE r10
 #define UR r11
 #define U2 r12
 
 // memory usage DRam:
-// 00 CMD
-// 04 DeAd
-// 08 Msk1
-// 0C DebC
-// 10 Data
-// 100 Log data
+// 00 CMD   Command to execute
+// 04 DeAd  Device adress of GPIO subsystem
+// 08 Msk1  Mask to separate the GPIO bit
+// 0C MonC  Monitoring counter
+// 10 Data  Data to exchange between PRU and ARM
+// 100 Log data  Data for monitoring feature
 
 .macro SWITCH_INP
   LBBO OE,  DeAd, 0x34, 4  // load OE
@@ -47,7 +47,7 @@
 
 .origin 0
 LDI  XX, LOG_BASE*4
-LDI  DebC, 0x0
+LDI  MonC, 0x0
 
 ZERO &r0, 4             // clear register R0
 MOV  DeAd, 0x22020      // load address
@@ -60,8 +60,8 @@ XOR  Msk0, Msk0, Msk1
 SWITCH_INP
 
 main_loop:
-  SBCO DebC,  DRam, 0x0C, 4  // save bit counter
-  LDI  DebC,  0              // reset counter
+  SBCO MonC,  DRam, 0x0C, 4  // save bit counter
+  LDI  MonC,  0              // reset counter
   LDI  CMD, 0
   SBCO CMD, DRam, 0x00, 4    // clear command
 
@@ -134,7 +134,6 @@ JMP main_loop
 
 
 triplet:
-  //LBCO DAT, DRam, 0x10, 4  // load 4 byte from array
   LDI  DAT, 0
   LOOP tripLoop, 2
     SWITCH_OUT
@@ -267,11 +266,15 @@ Delay:
   JMP  delayCont
 
   NoOpps:
-  LOOP delayCont, 5     // wait 6 cycles
+  OR   UR, UR, UR
+  OR   UR, UR, UR
+  OR   UR, UR, UR
+  OR   UR, UR, UR
+  OR   UR, UR, UR
   OR   UR, UR, UR
 
   delayCont:
-  ADD  DebC, DebC, 1    // increase bit counter
+  ADD  MonC, MonC, 1    // increase bit counter
   SUB  uSEC, uSEC, 1    // decrease usec counter
   QBLT Delay, uSEC, 0   // check usec counter
   RET

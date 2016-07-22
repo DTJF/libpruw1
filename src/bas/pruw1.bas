@@ -136,14 +136,14 @@ function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
       CASE ELSE          : search_bit = (last_rn SHR i) AND &b1
       END SELECT
 
-       PRUCALL(CMD_TRIP + search_bit SHL 8,,"tripple:")
-       ret = DRam[4] AND &b111
+      PRUCALL(CMD_TRIP + search_bit SHL 8,,"tripple:")
+      ret = DRam[4] AND &b111
 
-       SELECT CASE AS CONST ret
-       CASE 0 : last_zero = i
-       CASE 3 : CONTINUE WHILE ' should never happen (error -> next device)
-       END SELECT
-       rn OR= CULNGINT(ret) SHR 2 SHL i
+      SELECT CASE AS CONST ret
+      CASE 0 : last_zero = i
+      CASE 3 : CONTINUE WHILE ' should never happen (error -> next device)
+      END SELECT
+      rn OR= CULNGINT(ret) SHR 2 SHL i
     NEXT
     IF desc_bit = last_zero ORELSE last_zero < 0 THEN last_device = 1
     desc_bit = last_zero
