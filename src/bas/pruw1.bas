@@ -59,7 +59,7 @@ CONSTRUCTOR PruW1(BYVAL P AS PruIo PTR, BYVAL B AS Uint8)
       , n = r AND 31       ' number of bit
     Mask = 1 SHL n
     Raw = @.Gpio->Raw(i)->Mix
-    IF .PruNo then
+    IF .PruNo THEN
       PruNo = 0
       PruIRam = PRUSS0_PRU0_IRAM
       PruDRam = PRUSS0_PRU0_DATARAM
@@ -114,7 +114,7 @@ Find the number of devices by evaluating the upper bound of array Slots.
 
 \since 0.0
 '/
-function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
+FUNCTION PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) AS ZSTRING PTR
   VAR max_slave = 64 _
           , cnt = 1 _
      , desc_bit = 64 _
@@ -127,7 +127,7 @@ function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
   WHILE 0 = last_device ANDALSO cnt < max_slave
     last_rn = rn
     rn = 0
-    IF resetBus() THEN                Errr = @"no devices" : return Errr
+    IF resetBus() THEN                Errr = @"no devices" : RETURN Errr
     sendByte(SearchType)
     FOR i AS INTEGER = 0 TO 63
       SELECT CASE i
@@ -151,8 +151,8 @@ function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
     REDIM PRESERVE Slots(u)
     Slots(u) = rn
     cnt += 1
-  WEND :                                                     return 0
-END function
+  WEND :                                                     RETURN 0
+END FUNCTION
 
 
 /'* \brief Send a byte (eight bits) to the bus.
