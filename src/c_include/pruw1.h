@@ -21,15 +21,9 @@ Copyright 2015-\Year by \Email
 
 #include "pruw1.hp"
 
-//typedef signed char int8;      //!< 8 bit signed integer data type.
 typedef unsigned char UInt8;      //!< 8 bit unsigned integer data type.
-//typedef short int16;           //!< 16 bit signed integer data type.
-//typedef int int32;             //!< 32 bit signed integer data type.
-//typedef unsigned char uint8;   //!< 8 bit unsigned integer data type.
-//typedef unsigned short uint16; //!< 16 bit unsigned integer data type.
-typedef unsigned int UInt32;   //!< 32 bit unsigned integer data type.
-typedef unsigned long int UInt64;   //!< 32 bit unsigned integer data type.
-//typedef float float_t;         //!< float data type.
+typedef unsigned int UInt32;      //!< 32 bit unsigned integer data type.
+typedef unsigned long int UInt64; //!< 32 bit unsigned integer data type.
 
 //! Tell pruss_intc_mapping.bi that we use ARM33xx.
 #define AM33XX
@@ -71,7 +65,7 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 */
 short T_fam20 (unsigned char* Rom);
 
-/*! \brief The W1 driver class.
+/*! \brief The PruW1 C wrapper structure.
 
 The class providing the one wire features.
 
@@ -133,7 +127,7 @@ communication).
 */
 pruw1* pruw1_new(pruio *P, UInt8 B);
 
-/** \brief Wrapper function for the destructor PruW1::~PruW1.
+/** \brief Wrapper function for the destructor PruW1::~PruW1().
 \param W1 The driver instance.
 
 \since 0.0

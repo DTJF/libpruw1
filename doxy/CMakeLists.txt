@@ -13,7 +13,7 @@ DEPENDS
   ${PASM_SRC}.hp
   "../src/doc/_1_introduction.md"
   "../src/doc/_2_preparation.md"
-  "../src/doc/_9_debug.md"
+  "../src/doc/_9_monitor.md"
   "../src/doc/_z_changelog.md"
   "../src/c_include/pruw1.h"
   ../CMakeLists.txt

@@ -12,7 +12,7 @@ functions to decode the temperature from the received data.
 #INCLUDE ONCE "pruw1.bi" ' FB declarations
 
 #IFNDEF __PRUW1_MONITOR__
- '* Macro to call a function on the PRU, DEBUG features disabled.
+ '* Macro to call a function on the PRU, monitoring features disabled.
  #MACRO PRUCALL(_C_,_V_,_T_)
   WHILE DRam[0] : SLEEP 1 : WEND
   _V_
@@ -20,7 +20,7 @@ functions to decode the temperature from the received data.
   WHILE DRam[0] : SLEEP 1 : WEND
  #ENDMACRO
 #ELSE
- '* Macro to call a function on the PRU, DEBUG features enabled.
+ '* Macro to call a function on the PRU, monitoring features enabled.
  #MACRO PRUCALL(_C_,_V_,_T_)
   WHILE DRam[0] : SLEEP 1 : ?"."; : WEND
   _V_
@@ -59,7 +59,7 @@ CONSTRUCTOR PruW1(BYVAL P AS PruIo PTR, BYVAL B AS Uint8)
       , n = r AND 31       ' number of bit
     Mask = 1 SHL n
     Raw = @.Gpio->Raw(i)->Mix
-    IF .PruNo then
+    IF .PruNo THEN
       PruNo = 0
       PruIRam = PRUSS0_PRU0_IRAM
       PruDRam = PRUSS0_PRU0_DATARAM
@@ -114,7 +114,7 @@ Find the number of devices by evaluating the upper bound of array Slots.
 
 \since 0.0
 '/
-function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
+FUNCTION PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) AS ZSTRING PTR
   VAR max_slave = 64 _
           , cnt = 1 _
      , desc_bit = 64 _
@@ -127,7 +127,7 @@ function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
   WHILE 0 = last_device ANDALSO cnt < max_slave
     last_rn = rn
     rn = 0
-    IF resetBus() THEN                Errr = @"no devices" : return Errr
+    IF resetBus() THEN                Errr = @"no devices" : RETURN Errr
     sendByte(SearchType)
     FOR i AS INTEGER = 0 TO 63
       SELECT CASE i
@@ -151,8 +151,8 @@ function PruW1.scanBus(BYVAL SearchType AS UInt8 = &hF0) as zstring ptr
     REDIM PRESERVE Slots(u)
     Slots(u) = rn
     cnt += 1
-  WEND :                                                     return 0
-END function
+  WEND :                                                     RETURN 0
+END FUNCTION
 
 
 /'* \brief Send a byte (eight bits) to the bus.
@@ -198,7 +198,7 @@ at byte offset `&h10` (= DRam[4]).
 '/
 FUNCTION PruW1.recvBlock(BYVAL N AS UInt8) AS UInt8
 #IFDEF __PRUW1_MONITOR__
-  IF N > 112 THEN Errr = @"block too big maximum 112 bytes in DEBUG" : RETURN 0
+  IF N > 112 THEN Errr = @"block too big (< 112 bytes in monitoring)" : RETURN 0
 #ENDIF
   PRUCALL(CMD_RECV + N SHL 8,,"recvBlock: " & N)
   RETURN N
@@ -266,7 +266,7 @@ PruW1::readBlock() call).
 FUNCTION PruW1.calcCrc(BYVAL N AS UInt8) AS UInt8
   VAR crc = 0, p = CAST(UBYTE PTR, @DRam[4])
   FOR p = p TO p + N - 1
-    crc = crc8_table(crc XOR *p)
+    crc = Crc8_Table(crc XOR *p)
   NEXT : RETURN crc
 END FUNCTION
 

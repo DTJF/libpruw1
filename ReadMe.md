@@ -5,7 +5,7 @@ Welcome to (the currently experimental -- please report bugs -- version
 - designed for [Beaglebone hardware](http://www.beaglebone.org), providing
 - configuration of any GPIO as W1 bus (without additional hardware), for
 - sending digital output and receiving digital input from the bus, and
-- logging the bus data line state for debugging purposes, but
+- logging the bus data line state for monitoring purposes, but
 - not supporting parasite power mode.
 
 *libpruw1* software runs on the host (ARM) and in parallel on a

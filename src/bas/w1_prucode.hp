@@ -3,7 +3,7 @@
 \brief This file synchronizes parameters between FreeBASIC, C and PASM source code.
 
 This file is used in FreeBASIC, C and PASM source code to synchonize
-the PRU message code numbers and the debug switch.
+the PRU message code numbers and the monitoring switch.
 
 Since all the syntaxes have different markers for comments, we cannot
 use 'normal' comments here. We've to enclose the comment text in
@@ -16,7 +16,7 @@ preprocessor blocks that never get parsed.
 
 /*!
 \def __PRUW1_MONITOR__
-\brief The switch to enable debugging features.
+\brief The switch to enable monitoring features.
 
 \def CMD_TRIP
 \brief The command to initiate a tripple.
@@ -31,7 +31,7 @@ preprocessor blocks that never get parsed.
 \brief The pointer to the first byte of logs in DRam memory (4 byte access).
 */
 
-// Swap the following two lines in order to compile with debugging features.
+// Swap the following two lines in order to compile with monitoring features.
 #define __PRUW1_MONITOR__
 #endif
 
