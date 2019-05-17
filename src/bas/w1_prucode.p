@@ -1,6 +1,6 @@
 
 //  compile for .bi output
-//    pasm -V3 -y -CPru_W1 w1_prucode.p
+//    pasm -V3 -f -CPru_W1 w1_prucode.p
 
 #include "w1_prucode.hp"
 

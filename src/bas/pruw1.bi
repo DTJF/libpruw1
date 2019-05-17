@@ -7,8 +7,8 @@ compile against the library (#`INCLUDE ONCE "BBB/pruw1.bi"`).
 \since 0.0
 '/
 
-#INCLIB "pruw1"
 #INCLUDE ONCE "BBB/pruio.bi"
+#INCLIB "pruw1"
 
 ' forward declarations of helper functions
 DECLARE FUNCTION T_fam10(BYVAL AS UBYTE PTR) AS SHORT

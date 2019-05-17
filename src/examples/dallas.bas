@@ -33,34 +33,35 @@ DO
   DO : WITH *w1
     IF .Errr THEN _
           ?"w1 CTOR failed (" & *.Errr & "/" & *io->Errr & ")" : EXIT DO
+    ' Scan the bus for device IDs
     IF .scanBus() THEN _
                         PRINT"scanBus failed (" & *.Errr & ")" : EXIT DO
-    ?
+    ? ' print them out
     FOR i AS INTEGER = 0 TO UBOUND(.Slots) ' output slot# and sensor IDs
       ?"found device " & i & ", ID: " & HEX(.Slots(i), 16)
     NEXT
-
+    ' Perform some measurements
     FOR i AS INTEGER = 0 TO 10 '                output 11 blocks of data
-      IF .resetBus() THEN                        ?"no devices" : EXIT DO '*< The presense pulse (0 = OK).
-
+      ' Start measurement, send the presense pulse (0 = OK).
+      IF .resetBus() THEN                        ?"no devices" : EXIT DO
       .sendByte(&hCC)            ' SKIP_ROM command -> broadcast message
       .sendByte(&h44)       ' convert T command -> all sensors triggered
       SLEEP 750 : ?                              ' wait for conversation
-
+      ' Fetch the data from sensor ROM
       FOR s AS INTEGER = 0 TO UBOUND(.Slots)
-        SELECT CASE AS CONST PEEK(UBYTE, @.Slots(s))
-        CASE &h10, &h20, &h22, &h28, &h3B, &h42 ' all Dallas sensor types
-        CASE ELSE                                         : CONTINUE FOR ' no dallas sensor
+        SELECT CASE AS CONST PEEK(UBYTE, @.Slots(s)) '        check type
+        CASE &h10, &h20, &h22, &h28, &h3B, &h42 '   a Dallas sensor type
+        CASE ELSE          /' no dallas sensor -> skip '/ : CONTINUE FOR
         END SELECT
 
+        ' Start reading, send the presense pulse (0 = OK).
         IF .resetBus() THEN                     ?"no devices" : EXIT FOR '*< check presense pulse (0 = OK).
-
         .sendByte(&h55)      ' ROM_MATCH command -> adress single sensor
         .sendRom(.Slots(s))            ' send sensor ID -> select sensor
-
         .sendByte(&hBE) 'READ_SCRATCH command -> sensor sends scratchpad
         .recvBlock(9) ' read data block (64 bit scratchpad and CRC byte)
 
+        ' output result
         VAR crc = .calcCrc(9) '*< The checksum (0 = OK).
         ?"sensor " & HEX(.Slots(s), 16) & " --> " & *IIF(crc, @"error: ", @"OK: ") _
           & IIF(PEEK(UBYTE, @.Slots(s)) = &h10 _

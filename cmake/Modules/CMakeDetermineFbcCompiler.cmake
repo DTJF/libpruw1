@@ -1,7 +1,7 @@
 #
 # CMakeFbc - CMake module for FreeBASIC Language
 #
-# Copyright (C) 2014-2015, Thomas{ dOt ]Freiherr[ aT ]gmx[ DoT }net
+# Copyright (C) 2014-2019, Thomas{ dOt ]Freiherr[ aT ]gmx[ DoT }net
 #
 # All rights reserved.
 #
@@ -23,8 +23,7 @@ IF(NOT CMAKE_Fbc_COMPILER)
     IF(CMAKE_Fbc_FLAGS_ENV_INIT)
       SET(CMAKE_Fbc_COMPILER_ARG1 "${CMAKE_Fbc_FLAGS_ENV_INIT}" CACHE STRING "First argument to fbc compiler")
     ENDIF()
-    IF(EXISTS ${CMAKE_Fbc_COMPILER_INIT})
-    ELSE()
+    IF(NOT EXISTS ${CMAKE_Fbc_COMPILER_INIT})
       MESSAGE(FATAL_ERROR "Could not find compiler set in environment variable\n  $ENV{FBC}.")
     ENDIF()
   ENDIF()
@@ -44,26 +43,33 @@ IF(NOT CMAKE_Fbc_COMPILER)
   ENDIF()
 
   # Find the compiler.
-  FIND_PROGRAM(CMAKE_Fbc_COMPILER NAMES ${CMAKE_Fbc_COMPILER_LIST} DOC "fbc compiler")
+  FIND_PROGRAM(CMAKE_Fbc_COMPILER NAMES ${CMAKE_Fbc_COMPILER_LIST} DOC "fbc compiler" HINTS /usr/local/bin)
   IF(CMAKE_Fbc_COMPILER_INIT AND NOT CMAKE_Fbc_COMPILER)
-    SET(CMAKE_Fbc_COMPILER "${CMAKE_Fbc_COMPILER_INIT}" CACHE FILEPATH "fbc compiler" FORCE)
+    SET(CMAKE_Fbc_COMPILER "${CMAKE_Fbc_COMPILER_INIT}" CACHE FILEPATH "fbc compiler (init)" FORCE)
   ENDIF()
 ENDIF()
-GET_FILENAME_COMPONENT(COMPILER_LOCATION "${CMAKE_Fbc_COMPILER}" PATH)
 
 IF(NOT CMAKE_Fbc_DEPS_TOOL)
-  FIND_PROGRAM(CMAKE_Fbc_DEPS_TOOL cmake_fb_deps DOC "FreeBASIC dependencies tool.")
-  IF(CMAKE_Fbc_DEPS_TOOL)
-    SET(CMAKE_Fbc_DEPS_TOOL "${CMAKE_Fbc_DEPS_TOOL}" CACHE FILEPATH "cmake FB dependency tool" FORCE)
-    MESSAGE(STATUS "Check for working cmake_fb_deps tool OK ==> ${CMAKE_Fbc_DEPS_TOOL}")
+  FIND_PROGRAM(pathnam cmakefbc_deps DOC "FreeBASIC dependencies tool." HINTS /usr/local/bin)
+  IF(pathnam)
+    EXECUTE_PROCESS(COMMAND ${pathnam} -v
+      OUTPUT_VARIABLE version_string OUTPUT_STRIP_TRAILING_WHITESPACE)
+    GET_FILENAME_COMPONENT(fbpath ${CMAKE_Fbc_COMPILER} PATH)
+    IF(fbpath AND (NOT ${version_string} MATCHES "Too less parameters"))
+      IF(UNIX)
+        SET(fbpath "${fbpath}/../include/freebasic")
+      ELSE()
+        SET(fbpath "${fbpath}/inc")
+      ENDIF()
+      SET(CMAKE_Fbc_DEPS_TOOL "${pathnam}" CACHE INTERNAL "cmake FB dependency tool" FORCE)
+      SET(CMAKE_Fbc_INST_PATH "-f=${fbpath}" CACHE INTERNAL "install path for Fbc headers" FORCE)
+    ELSE()
+      SET(version_string "${pathnam}: version 0.0")
+      SET(CMAKE_Fbc_DEPS_TOOL "${pathnam}" CACHE INTERNAL "cmake FB dependency tool" FORCE)
+      SET(CMAKE_Fbc_INST_PATH "" CACHE INTERNAL "install path for Fbc headers" FORCE)
+    ENDIF()
+    MESSAGE(STATUS "Check for working cmakefbc_deps tool OK ==> ${version_string}")
   ENDIF()
-ENDIF()
-
-FIND_PROGRAM(CMAKE_AR NAMES ar PATHS ${COMPILER_LOCATION} )
-
-FIND_PROGRAM(CMAKE_RANLIB NAMES ranlib)
-IF(NOT CMAKE_RANLIB)
-   SET(CMAKE_RANLIB : CACHE INTERNAL "noop for ranlib")
 ENDIF()
 
 SET(CMAKE_COMPILER_IS_FBC 1)
@@ -84,8 +90,8 @@ CONFIGURE_FILE(
   )
 
 MARK_AS_ADVANCED(
-  CMAKE_AR
-  CMAKE_RANLIB
   CMAKE_Fbc_COMPILER
+  CMAKE_Fbc_DEPS_TOOL
+  CMAKE_Fbc_INST_PATH
   )
 SET(CMAKE_Fbc_COMPILER_ENV_VAR "FBC")

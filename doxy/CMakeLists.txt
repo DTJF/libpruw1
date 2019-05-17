@@ -2,8 +2,14 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.3)
 
 IF(NOT COMMAND FB_DOCUMENTATION)
-  INCLUDE(UseFb-Doc)
+  INCLUDE(UseFbDoc)
+  IF(NOT COMMAND FB_DOCUMENTATION)
+    MSG_LOG("!! no targets <doc...> (UseFbDoc.cmake failed)")
+    RETURN()
+  ENDIF()
 ENDIF()
+
+SET(CMAKE_VERBOSE_MAKEFILE 1)
 
 FB_DOCUMENTATION(
 BAS_SRC
@@ -11,11 +17,11 @@ BAS_SRC
   ${SRC_BI}
 DEPENDS
   ${PASM_SRC}.hp
+  "../src/c_include/pruw1.h"
   "../src/doc/_1_introduction.md"
   "../src/doc/_2_preparation.md"
   "../src/doc/_9_monitor.md"
   "../src/doc/_z_changelog.md"
-  "../src/c_include/pruw1.h"
   ../CMakeLists.txt
   ../ReadMe.md
   Doxyfile

@@ -9,6 +9,7 @@ functions to decode the temperature from the received data.
 
 #INCLUDE ONCE "w1_prucode.bi" ' PRU firmware
 #INCLUDE ONCE "w1_prucode.hp" ' PRU syncronization
+#INCLUDE ONCE "BBB/pruio_prussdrv.bi" ' FB declarations
 #INCLUDE ONCE "pruw1.bi" ' FB declarations
 
 #IFNDEF __PRUW1_MONITOR__
@@ -62,11 +63,11 @@ CONSTRUCTOR PruW1(BYVAL P AS PruIo PTR, BYVAL B AS Uint8)
     IF .PruNo THEN
       PruNo = 0
       PruIRam = PRUSS0_PRU0_IRAM
-      PruDRam = PRUSS0_PRU0_DATARAM
+      PruDRam = PRUSS0_PRU0_DRAM
     ELSE
       PruNo = 1
       PruIRam = PRUSS0_PRU1_IRAM
-      PruDRam = PRUSS0_PRU1_DATARAM
+      PruDRam = PRUSS0_PRU1_DRAM
     END IF
 
     prussdrv_map_prumem(PruDRam, CAST(ANY PTR, @DRam))
@@ -79,7 +80,7 @@ CONSTRUCTOR PruW1(BYVAL P AS PruIo PTR, BYVAL B AS Uint8)
     VAR l = (UBOUND(Pru_W1) + 1) * SIZEOF(Pru_W1(0))
     IF 0 >= prussdrv_pru_write_memory(PRUSS0_PRU0_IRAM, 0, @Pru_W1(0), l) THEN _
                 Errr = @"failed loading PRU firmware" : EXIT CONSTRUCTOR
-    prussdrv_pruintc_init(@PRUSS_INTC_INITDATA) ' interrupts initialization
+    'prussdrv_pruintc_init(@PRUSS_INTC_INITDATA) ' interrupts initialization
     prussdrv_pru_enable(PruNo)
   END WITH
 END CONSTRUCTOR
