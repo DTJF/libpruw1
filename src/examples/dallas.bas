@@ -32,7 +32,7 @@ DO
   VAR w1 = NEW PruW1(io, P9_15) '*< Pointer to libpruw1 instance.
   DO : WITH *w1
     IF .Errr THEN _
-          ?"w1 CTOR failed (" & *.Errr & "/" & *io->Errr & ")" : EXIT DO
+             ?"w1 CTOR failed (" & *.Errr & "/" & *.Errr & ")" : EXIT DO
     ' Scan the bus for device IDs
     IF .scanBus() THEN _
                         PRINT"scanBus failed (" & *.Errr & ")" : EXIT DO
@@ -40,6 +40,7 @@ DO
     FOR i AS INTEGER = 0 TO UBOUND(.Slots) ' output slot# and sensor IDs
       ?"found device " & i & ", ID: " & HEX(.Slots(i), 16)
     NEXT
+    VAR res = CAST(UBYTE PTR, @.DRam[4]) '*< pointer to measurement data
     ' Perform some measurements
     FOR i AS INTEGER = 0 TO 10 '                output 11 blocks of data
       ' Start measurement, send the presense pulse (0 = OK).
@@ -47,7 +48,7 @@ DO
       .sendByte(&hCC)            ' SKIP_ROM command -> broadcast message
       .sendByte(&h44)       ' convert T command -> all sensors triggered
       SLEEP 750 : ?                              ' wait for conversation
-      ' Fetch the data from sensor ROM
+      ' Fetch the data from sensor scratch pads
       FOR s AS INTEGER = 0 TO UBOUND(.Slots)
         SELECT CASE AS CONST PEEK(UBYTE, @.Slots(s)) '        check type
         CASE &h10, &h20, &h22, &h28, &h3B, &h42 '   a Dallas sensor type
@@ -63,11 +64,14 @@ DO
 
         ' output result
         VAR crc = .calcCrc(9) '*< The checksum (0 = OK).
-        ?"sensor " & HEX(.Slots(s), 16) & " --> " & *IIF(crc, @"error: ", @"OK: ") _
-          & IIF(PEEK(UBYTE, @.Slots(s)) = &h10 _
-              , T_fam10(CAST(UBYTE PTR, @.DRam[4])) _ ' old format
-              , T_fam20(CAST(UBYTE PTR, @.DRam[4])) _ ' new format
-                ) / 256
+        ?"sensor " & HEX(.Slots(s), 16) & " --> CRC ";
+        IF crc THEN ?"error!" _
+               ELSE ?"OK: " _
+                    & IIF(PEEK(UBYTE, @.Slots(s)) = &h10 _
+                      , T_fam10(res) _ ' old format
+                      , T_fam20(res) _ ' new format
+                        ) / 256 _
+                    & " °C"
       NEXT
     NEXT
   END WITH : LOOP UNTIL 1

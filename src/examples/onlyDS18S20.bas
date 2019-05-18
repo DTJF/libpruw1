@@ -40,6 +40,7 @@ DO
     FOR i AS INTEGER = 0 TO UBOUND(.Slots) ' output slot# and sensor IDs
       ?"found device " & i & ", ID: " & HEX(.Slots(i), 16)
     NEXT
+    VAR res = CAST(UBYTE PTR, @.DRam[4]) '*< pointer to measurement data
     ' Perform some measurements
     FOR i AS INTEGER = 0 TO 10 '                output 11 blocks of data
       ' Start measurement, send the presense pulse (0 = OK).
@@ -47,7 +48,7 @@ DO
       .sendByte(&hCC)            ' SKIP_ROM command -> broadcast message
       .sendByte(&h44)       ' convert T command -> all sensors triggered
       SLEEP 750 : ?                              ' wait for conversation
-      ' Fetch the data from sensor ROM
+      ' Fetch the data from sensor scratch pads
       FOR s AS INTEGER = 0 TO UBOUND(.Slots)
         IF PEEK(UBYTE, @.Slots(s)) <> &h10 THEN CONTINUE FOR ' series 10 only
 
@@ -60,8 +61,9 @@ DO
 
         ' output result
         VAR crc = .calcCrc(9) '*< The checksum (0 = OK).
-        ?"sensor " & HEX(.Slots(s), 16) & " --> " & *IIF(crc, @"error: ", @"OK: ");
-        ?T_fam10(CAST(UBYTE PTR, @.DRam[4])) / 256
+        ?"sensor " & HEX(.Slots(s), 16) & " --> CRC ";
+        IF crc THEN ?"error!" _
+               ELSE ?"OK: " & T_fam10(res) / 256 & " °C"
       NEXT
     NEXT
   END WITH : LOOP UNTIL 1

@@ -44,11 +44,7 @@ ADD_SUBDIRECTORY(doxy)
 
 #ADD_DEPENDENCIES(pruw1 pruw1fbcode)
 
-ADD_CUSTOM_TARGET(examples)
-ADD_CUSTOM_TARGET(fb_examples DEPENDS pruw1)
 ADD_SUBDIRECTORY(src/examples)
-#SET_TARGET_PROPERTIES(fb_examples PROPERTIES EXCLUDE_FROM_ALL 1)
-ADD_DEPENDENCIES(examples fb_examples)
 
 #ADD_DEPENDENCIES(examples pruw1)
 

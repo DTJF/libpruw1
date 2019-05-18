@@ -1,8 +1,8 @@
 
 //  compile for .bi output
-//    pasm -V3 -f -CPru_W1 w1_prucode.p
+//    pasm -V3 -f -CPru_W1 pruw1.p
 
-#include "w1_prucode.hp"
+#include "pruw1.hp"
 
 #define DRam C24
 #define DIN 0x38

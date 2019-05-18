@@ -8,7 +8,7 @@ functions to decode the temperature from the received data.
 '/
 
 #INCLUDE ONCE "w1_prucode.bi" ' PRU firmware
-#INCLUDE ONCE "w1_prucode.hp" ' PRU syncronization
+#INCLUDE ONCE "pruw1.hp" ' PRU syncronization
 #INCLUDE ONCE "BBB/pruio_prussdrv.bi" ' FB declarations
 #INCLUDE ONCE "pruw1.bi" ' FB declarations
 
@@ -109,9 +109,9 @@ Find the number of devices by evaluating the upper bound of array Slots.
 
 \note Usually the bus gets scanned once in the init process of an
       application. When you intend to use dynamic sensor connections
-      (plug them in and out), then you have to periodically re-scan the
-      bus. In that case clear the Slots array before each scan, in
-      order to avoid double entries.
+      (plug them in or out during operation), then you have to
+      periodically re-scan the bus. In that case clear the Slots array
+      before each scan, in order to avoid double entries.
 
 \since 0.0
 '/
@@ -177,8 +177,8 @@ single device, ie. to read its scratchpad.
 
 \since 0.0
 '/
-SUB PruW1.sendRom(BYVAL V AS ULONGINT)
-  PRUCALL(CMD_SEND + 8 SHL 8,*CAST(ULONGINT PTR, @DRam[4]) = V,"sendRom: " & HEX(PEEK(ULONGINT, @DRam[4]), 16))
+SUB PruW1.sendRom(BYVAL V AS UInt64)
+  PRUCALL(CMD_SEND + 8 SHL 8,*CAST(UInt64 PTR, @DRam[4]) = V,"sendRom: " & HEX(PEEK(UInt64, @DRam[4]), 16))
 END SUB
 
 
@@ -306,7 +306,7 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 
 \since 0.0
 '/
-FUNCTION T_fam10(BYVAL Rom AS UBYTE PTR) AS SHORT EXPORT
+FUNCTION T_fam10 CDECL ALIAS "T_FAM10" (BYVAL Rom AS UInt8 PTR) AS Int16 EXPORT
   RETURN (IIF(Rom[1], Rom[0] - 256, Rom[0]) SHR 1) SHL 8 + (Rom[7] - Rom[6] - 4) SHL 4
 END FUNCTION
 
@@ -326,6 +326,6 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 
 \since 0.0
 '/
-FUNCTION T_fam20(BYVAL Rom AS UBYTE PTR) AS SHORT EXPORT
-  RETURN PEEK(SHORT, Rom) SHL 4
+FUNCTION T_fam20 CDECL ALIAS "T_FAM20" (BYVAL Rom AS UInt8 PTR) AS Int16 EXPORT
+  RETURN PEEK(Int16, Rom) SHL 4
 END FUNCTION
