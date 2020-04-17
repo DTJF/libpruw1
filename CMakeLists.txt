@@ -14,7 +14,7 @@ SET(PROJ_WEBS "https://github.com/DTJF/libpruw1" CACHE STRING "project website" 
 SET(PROJ_LICE "LGPLv2.1" CACHE STRING "project licence" FORCE)
 #STRING(TIMESTAMP tmp "%Y" UTC)
 #SET(PROJ_YEAR "${tmp}"             CACHE STRING "project year" FORCE)
-SET(PROJ_YEAR "2016"   CACHE STRING "project year" FORCE)
+SET(PROJ_YEAR "2020"   CACHE STRING "project year" FORCE)
 
 FIND_PACKAGE(LIBPRUSSDRV)
 CONFIGURE_FILE(src/doc/ReadMe.md.in ${CMAKE_SOURCE_DIR}/ReadMe.md @ONLY)
