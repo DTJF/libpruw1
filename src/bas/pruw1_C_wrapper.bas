@@ -50,7 +50,7 @@ END SUB
 '* \brief Wrapper function for PruW1::sendByte().
 SUB pruw1_sendRom CDECL ALIAS "pruw1_sendRom"( _
   BYVAL W1 AS PruW1 PTR, _
-  BYVAL V AS ULONGINT) EXPORT
+  BYVAL V AS UInt64) EXPORT
 
   W1->sendRom(V)
 END SUB
@@ -93,8 +93,8 @@ FUNCTION pruw1_calcCrc CDECL ALIAS "pruw1_calcCrc"( _
 END FUNCTION
 
 '* \brief Property to get size of array PruW1::Slots from C.
-FUNCTION pruw1_getSlotsSize CDECL ALIAS "pruw1_getSlotsSize"( _
-  BYVAL W1 AS PruW1 PTR) AS LONG EXPORT
+FUNCTION pruw1_getSlotMax CDECL ALIAS "pruw1_getSlotMax"( _
+  BYVAL W1 AS PruW1 PTR) AS Int32 EXPORT
 
   RETURN UBOUND(W1->Slots)
 END FUNCTION
@@ -107,3 +107,11 @@ SUB pruw1_eraseSlots CDECL ALIAS "pruw1_eraseSlots"( _
   REDIM W1->Slots(-1)
 END SUB
 
+'* \brief Function to get ID from the array PruW1::Slots from C.
+FUNCTION pruw1_getId CDECL ALIAS "pruw1_getId"( _
+  BYVAL W1 AS PruW1 PTR, _
+  BYVAL N AS UInt32) AS UInt64 EXPORT
+
+  RETURN IIF(N > UBOUND(W1->Slots), 0, W1->Slots(N))
+  'RETURN W1->Slots(N)
+END FUNCTION

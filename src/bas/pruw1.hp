@@ -1,5 +1,5 @@
 #ifdef FOR_DOXYGEN_ONLY
-/*! \file w1_prucode.hp
+/*! \file pruw1.hp
 \brief This file synchronizes parameters between FreeBASIC, C and PASM source code.
 
 This file is used in FreeBASIC, C and PASM source code to synchonize

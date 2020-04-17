@@ -20,13 +20,13 @@ Copyright 2015-\Year by \Email
 #endif /* __cplusplus */
 
 #include "pruw1.hp"
+#include "libpruio/pruio.h"
 
 typedef unsigned char UInt8;      //!< 8 bit unsigned integer data type.
+typedef short Int16;              //!< 16 bit signed integer data type.
+typedef int Int32;                //!< 32 bit signed integer data type.
 typedef unsigned int UInt32;      //!< 32 bit unsigned integer data type.
-typedef unsigned long int UInt64; //!< 32 bit unsigned integer data type.
-
-//! Tell pruss_intc_mapping.bi that we use ARM33xx.
-#define AM33XX
+typedef unsigned long long int UInt64; //!< 64 bit unsigned integer data type.
 
 //! forward declaration
 typedef struct pruw1 pruw1;
@@ -46,7 +46,7 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 
 \since 0.0
 */
-short T_fam10 (unsigned char* Rom);
+Int16 T_FAM10(UInt8* Rom);
 
 
 /** \brief Compute the temperature for a series 20 sensor (new format).
@@ -63,7 +63,7 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 
 \since 0.0
 */
-short T_fam20 (unsigned char* Rom);
+Int16 T_FAM20(UInt8* Rom);
 
 /*! \brief The PruW1 C wrapper structure.
 
@@ -73,38 +73,18 @@ The class providing the one wire features.
 */
 typedef struct pruw1{
   char *Errr;  //!< The variable to report error messages.
-  unsigned long int *Slots;//!< The array to store the device IDs.
-  UInt32
-    *Raw,  //!< A pointer to the libpruio raw GPIO data
-    *DRam; //!< A pointer to the libpruio DRam.
-
-//private:
   UInt32
     Mask,    //!< The mask to select the pin in use.
     PruNo,   //!< The number of the PRU to use
     PruIRam, //!< The PRU instruction ram to use.
-    PruDRam; //!< The PRU data ram to use.
+    PruDRam, //!< The PRU data ram to use.
+    *DRam,   //!< A pointer to the libpruw1 DRam.
+    *Raw;    //!< A pointer to the libpruio raw GPIO data
 
   //! A pre-computed table for fast CRC checksum computation.
-  Uint8 crc8_table[255 + 1] = {
-    0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65
-  , 157, 195, 33, 127, 252, 162, 64, 30, 95, 1, 227, 189, 62, 96, 130, 220
-  , 35, 125, 159, 193, 66, 28, 254, 160, 225, 191, 93, 3, 128, 222, 60, 98
-  , 190, 224, 2, 92, 223, 129, 99, 61, 124, 34, 192, 158, 29, 67, 161, 255
-  , 70, 24, 250, 164, 39, 121, 155, 197, 132, 218, 56, 102, 229, 187, 89, 7
-  , 219, 133, 103, 57, 186, 228, 6, 88, 25, 71, 165, 251, 120, 38, 196, 154
-  , 101, 59, 217, 135, 4, 90, 184, 230, 167, 249, 27, 69, 198, 152, 122, 36
-  , 248, 166, 68, 26, 153, 199, 37, 123, 58, 100, 134, 216, 91, 5, 231, 185
-  , 140, 210, 48, 110, 237, 179, 81, 15, 78, 16, 242, 172, 47, 113, 147, 205
-  , 17, 79, 173, 243, 112, 46, 204, 146, 211, 141, 111, 49, 178, 236, 14, 80
-  , 175, 241, 19, 77, 206, 144, 114, 44, 109, 51, 209, 143, 12, 82, 176, 238
-  , 50, 108, 142, 208, 83, 13, 239, 177, 240, 174, 76, 18, 145, 207, 45, 115
-  , 202, 148, 118, 40, 171, 245, 23, 73, 8, 86, 180, 234, 105, 55, 213, 139
-  , 87, 9, 235, 181, 54, 104, 138, 212, 149, 203, 41, 119, 244, 170, 72, 22
-  , 233, 183, 85, 11, 136, 214, 52, 106, 43, 117, 151, 201, 74, 20, 246, 168
-  , 116, 42, 200, 150, 21, 75, 169, 247, 182, 232, 10, 84, 215, 137, 107, 53
-  };
-};
+  UInt8 crc8_table[255 + 1];
+  //UInt64 *Slots; //!< The array to store the device IDs.
+}pruw1;
 
 /** \brief Wrapper function for the constructor PruW1::PruW1().
 \param P A pointer to the libpruio instance (for pinmuxing).
@@ -125,7 +105,7 @@ communication).
 
 \since 0.0
 */
-pruw1* pruw1_new(pruio *P, UInt8 B);
+pruw1* pruw1_new(pruIo *P, UInt8 B);
 
 /** \brief Wrapper function for the destructor PruW1::~PruW1().
 \param W1 The driver instance.
@@ -155,6 +135,7 @@ Slots, using function getSlotsSize().
 \since 0.0
 */
 char *pruw1_scanBus(pruw1* W1, UInt8 SearchType);
+#define pruw1_scanBus(W1) pruw1_scanBus(W1, 0xF0)
 
 
 /** \brief Send a byte (eight bits) to the bus.
@@ -265,7 +246,7 @@ Auxiliary function to work aroung a missing feature in C syntax.
 
 \since 0.0
 */
-int pruw1_getSlotsSize (pruw1 *W1);
+Int32 pruw1_getSlotMax (pruw1 *W1);
 
 
 /** \brief Function to empty the array PruW1::Slots from C.
@@ -276,6 +257,17 @@ Auxiliary function to work aroung a missing feature in C syntax.
 \since 0.0
 */
 void pruw1_eraseSlots(pruw1 *W1);
+
+
+/** \brief Function to get ID from array PruW1::Slots from C.
+\param W1 The driver instance.
+\param N The number of the slot entry.
+
+Auxiliary function to work aroung a missing feature in C syntax.
+
+\since 0.2
+*/
+UInt64 pruw1_getId(pruw1 *W1, UInt32 N);
 
 
 #ifdef __cplusplus

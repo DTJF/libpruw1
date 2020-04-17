@@ -7,7 +7,7 @@ on the bus. The PRU logs the state of this pin at a fixed sampling rate
 of 1 us (1 MHz).
 
 This feature has to get compiled in to the library. Define symbol
-`__PRUW1_MONITOR__` in file w1_prucode.hp to enable it. Then re-compile
+`__PRUW1_MONITOR__` in file pruw1.hp to enable it. Then re-compile
 the library.
 
 

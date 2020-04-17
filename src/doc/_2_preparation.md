@@ -27,13 +27,12 @@ packages in their distrubution management system (D).
 |                                               Name  | Type |  Function                                                      |
 | --------------------------------------------------: | :--: | :------------------------------------------------------------- |
 | [fbc](http://www.freebasic.net)                     | M    | FreeBASIC compiler to compile the source code                  |
-| [fb_prussdrv](https://github.com/DTJF/fb_prussdrv)  | M    | PRU assembler to compile PRU code and libprussdrv              |
 | [libpruio](https://github.com/DTJF/libpruio)        | M    | Library used for pinmuxing                                     |
 | [dtc](https://git.kernel.org/cgit/utils/dtc/dtc.git)| M  D | Device tree compiler to create overlays                        |
 | [GIT](http://git-scm.com/)                          | R  D | Version control system to organize the files                   |
 | [CMake](http://www.cmake.org)                       | R  D | Build management system to build executables and documentation |
 | [cmakefbc](http://github.com/DTJF/cmakefbc)         | R    | FreeBASIC extension for CMake                                  |
-| [fb-doc](http://github.com/DTJF/fb-doc)             | R    | FreeBASIC extension tool for Doxygen                           |
+| [fbdoc](http://github.com/DTJF/fbdoc)               | R    | FreeBASIC extension tool for Doxygen                           |
 | [Doxygen](http://www.doxygen.org/)                  | R  D | Documentation generator (for html output)                      |
 | [Graphviz](http://www.graphviz.org/)                | R  D | Graph Visualization Software (caller/callee graphs)            |
 | [LaTeX](https://latex-project.org/ftp.html)         | R  D | A document preparation system (for PDF output)                 |
@@ -56,19 +55,6 @@ websides, linked by the name in the first column.
    wget https://www.freebasic-portal.de/dlfiles/625/freebasic_1.06.0debian7_armhf.deb
    sudo dpkg --install freebasic_1.06.0debian7_armhf.deb
    sudo apt-get -f install
-   ~~~
-
--# Then make the FB version of prussdrv working: ???
-   ~~~{.txt}
-   git clone https://github.com/DTJF/fb_prussdrv
-   cd fb_prussdrv
-   sudo su
-   cp bin/libprussdrv.* /usr/local/lib
-   ldconfig
-   mkdir /usr/local/include/freebasic/BBB
-   cp include/* /usr/local/include/freebasic/BBB
-   cp bin/pasm /usr/local/bin
-   exit
    ~~~
 
 -# Continue by installing cmakefbc (if wanted). That's easy, when you
@@ -98,11 +84,11 @@ websides, linked by the name in the first column.
    ~~~
    \note Omit `sudo` in case of non-LINUX systems.
 
--# And finaly, install fb-doc (if wanted) by using GIT and CMake.
+-# And finaly, install fbdoc (if wanted) by using GIT and CMake.
    Execute the commands
    ~~~{.txt}
-   git clone https://github.com/DTJF/fb-doc
-   cd fb-doc
+   git clone https://github.com/DTJF/fbdoc
+   cd fbdoc
    mkdir build
    cd build
    cmake ..
@@ -156,6 +142,14 @@ This will build the library binary and install it to `/usr/local/lib`.
 The FB header file gets into the folder `BBB` in the FreeBASIC
 installation folder.
 
+\note The last command sudo ldconfig is only necessary after first
+      install. It makes the newly installed library visible for the
+      linker. You can omit it for further updates.
+
+\note The make install script creates files in the system subfolders
+      under `/usr/local/`, and a file named `install_manifest.txt`. In
+      order to uninstall execute `sudo xargs rm <
+      install_manifest.txt`.
 
 # Test
 

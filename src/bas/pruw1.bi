@@ -7,12 +7,16 @@ compile against the library (#`INCLUDE ONCE "BBB/pruw1.bi"`).
 \since 0.0
 '/
 
-#INCLIB "pruw1"
 #INCLUDE ONCE "BBB/pruio.bi"
+#INCLIB "pruw1"
+
+TYPE AS    SHORT Int16
+TYPE AS ULONGINT UInt64
 
 ' forward declarations of helper functions
-DECLARE FUNCTION T_fam10(BYVAL AS UBYTE PTR) AS SHORT
-DECLARE FUNCTION T_fam20(BYVAL AS UBYTE PTR) AS SHORT
+DECLARE FUNCTION T_fam10 (BYVAL AS UInt8 PTR) AS Int16
+DECLARE FUNCTION T_fam20 (BYVAL AS UInt8 PTR) AS Int16
+
 
 /'* \brief The W1 driver class.
 
@@ -22,10 +26,15 @@ The class providing the one wire features.
 '/
 TYPE PruW1
   AS ZSTRING PTR Errr    '*< The variable to report error messages.
-  AS ULONGINT Slots(ANY) '*< The array to store the device IDs.
+  AS UInt32 _
+      Mask _     '*< The mask to select the pin in use.
+    , PruNo _    '*< The number of the PRU to use
+    , PruIRam _  '*< The PRU instruction ram to use.
+    , PruDRam    '*< The PRU data ram to use.
   AS UInt32 PTR _
-      Raw _      '*< A pointer to the libpruio raw GPIO data
-    , DRam       '*< A pointer to the libpruio DRam.
+      DRam _     '*< A pointer to the libpruw1 DRam.
+    , Raw        '*< A pointer to the libpruio raw GPIO data
+  '* A pre-computed table for fast CRC checksum computation.
   AS Uint8 Crc8_Table(255) = { _
     0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65 _
   , 157, 195, 33, 127, 252, 162, 64, 30, 95, 1, 227, 189, 62, 96, 130, 220 _
@@ -44,24 +53,17 @@ TYPE PruW1
   , 233, 183, 85, 11, 136, 214, 52, 106, 43, 117, 151, 201, 74, 20, 246, 168 _
   , 116, 42, 200, 150, 21, 75, 169, 247, 182, 232, 10, 84, 215, 137, 107, 53 _
   }
+  AS UInt64 Slots(ANY) '*< The array to store the device IDs.
 
   DECLARE CONSTRUCTOR(BYVAL AS PruIo PTR, BYVAL AS Uint8)
   DECLARE DESTRUCTOR()
   DECLARE FUNCTION scanBus(BYVAL AS UInt8 = &hF0)AS ZSTRING PTR
   DECLARE SUB sendByte(BYVAL AS UInt8)
-  DECLARE SUB sendRom(BYVAL AS ULONGINT)
+  DECLARE SUB sendRom(BYVAL AS UInt64)
   DECLARE FUNCTION recvBlock(BYVAL AS UInt8) AS UInt8
   DECLARE FUNCTION recvByte()AS UInt8
   DECLARE FUNCTION getIn() AS UInt8
   DECLARE FUNCTION resetBus() AS UInt8
   DECLARE FUNCTION calcCrc(BYVAL AS UInt8) AS UInt8
-
-PRIVATE:
-  AS UInt32 _
-      Mask _     '*< The mask to select the pin in use.
-    , PruNo _    '*< The number of the PRU to use
-    , PruIRam _  '*< The PRU instruction ram to use.
-    , PruDRam    '*< The PRU data ram to use.
-  '* A pre-computed table for fast CRC checksum computation.
   DECLARE SUB prot()
 END TYPE

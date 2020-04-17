@@ -1,39 +1,39 @@
 # This module prepares a standard doc build by the Doxygen generator,
-# supported by the fb-doc tool (http://github.com/DTJF/fb-doc)
+# supported by the fbdoc tool (http://github.com/DTJF/fbdoc)
 #
 # It defines the following ...
 #
-# Copyright (C) 2014-2015, Thomas{ dOt ]Freiherr[ aT ]gmx[ DoT }net
+# Copyright (C) 2014-2019, Thomas{ dOt ]Freiherr[ aT ]gmx[ DoT }net
 # License GPLv3 (see http://www.gnu.org/licenses/gpl-3.0.html)
 #
 # See ReadMe.md for details.
 
+# check for fbdoc tool
+IF(NOT FbDoc_WORKS)
+  INCLUDE(FindFbDoc)
+ENDIF()
+
+# check for Doxygen
+IF(NOT DOXYGEN_FOUND)
+  INCLUDE(FindDoxygen)
+ENDIF()
+
+IF(NOT (FbDoc_WORKS AND DOXYGEN_FOUND))
+  RETURN()
+ENDIF()
+
 # check for parser macro
 IF(NOT COMMAND CMAKE_PARSE_ARGUMENTS)
   INCLUDE(CMakeParseArguments)
+  IF(NOT COMMAND CMAKE_PARSE_ARGUMENTS)
+    MESSAGE(STATUS "include CMakeParseArguments failed -> no function FB_DOCUMENTATION")
+    RETURN()
+  ENDIF()
 ENDIF()
 
+
+# define function for doc targets
 FUNCTION(FB_DOCUMENTATION)
-  SET(logfile ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log)
-  SET(errfile ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log)
-
-  # check for fb-doc tool
-  INCLUDE(FindFb-Doc)
-  IF(NOT FbDoc_WORKS)
-    SET(msg "fb-doc tool not found ==> doc targets not available!")
-    MESSAGE(STATUS ${msg})
-    FILE(APPEND ${errfile} "${msg}\n\n")
-    RETURN()
-  ENDIF()
-
-  # check for Doxygen
-  INCLUDE(FindDoxygen)
-  IF(NOT DOXYGEN_FOUND)
-    SET(msg "Doxygen not found ==> doc targets not available!")
-    MESSAGE(STATUS ${msg})
-    FILE(APPEND ${errfile} "${msg}\n\n")
-    RETURN()
-  ENDIF()
 
   CMAKE_PARSE_ARGUMENTS(ARG
     "NO_LFN;NO_PROJDATA;NO_HTM;NO_PDF;NO_WWW;NO_SELFDEP;NO_SYNTAX"
@@ -44,7 +44,7 @@ FUNCTION(FB_DOCUMENTATION)
   IF(ARG_NO_HTM AND ARG_NO_PDF AND ARG_NO_WWW)
     SET(msg "FB_DOCUMENTATION error: all output blocked ==> doc targets not available!")
     MESSAGE(STATUS ${msg})
-    FILE(APPEND ${errfile} "${msg}\n\n")
+    FILE(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log "${msg}\n\n")
     RETURN()
   ENDIF()
   SET(msg "")
@@ -59,7 +59,7 @@ FUNCTION(FB_DOCUMENTATION)
     SET(FbDoc_SYNTAX ${CMAKE_COMMAND} -E echo no syntax highlighting for)
   ENDIF()
 
-  SET(doxyext ${CMAKE_CURRENT_BINARY_DIR}/DoxyExtension) # ext file name
+  SET(doxyext ${CMAKE_CURRENT_BINARY_DIR}/DoxyExtension) # extension file
   IF(NOT ARG_DOXYFILE) #                      default configuration file
     SET(ARG_DOXYFILE "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile")
   ENDIF()
@@ -77,16 +77,29 @@ ALIASES += \"Mail=${PROJ_MAIL}\" \\
       )
     LIST(APPEND msg "PROJDATA")
   ENDIF()
+  IF(NOT ARG_NO_LFN) #                           generate file fbdoc.lfn
+    SET(lfn ${CMAKE_CURRENT_BINARY_DIR}/fbdoc.lfn)
+    LIST(APPEND ARG_DEPENDS ${lfn})
+    ADD_CUSTOM_COMMAND(OUTPUT ${lfn}
+      COMMAND ${FbDoc_EXECUTABLE} -l -L ${lfn} ${doxyext}
+      DEPENDS ${ARG_BAS_SRC}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      )
+    LIST(APPEND msg "LFN")
+    SET(filt_cmd "\\\"${FbDoc_EXECUTABLE} -L ${lfn}\\\"")
+  ELSE()
+    SET(filt_cmd "${FbDoc_EXECUTABLE}")
+  ENDIF()
   FILE(WRITE ${doxyext} #                           write extension file
 "
 @INCLUDE = ${ARG_DOXYFILE}
-EXTENSION_MAPPING      = bi=C++ bas=C++
+EXTENSION_MAPPING      += bi=C++ bas=C++
 OUTPUT_DIRECTORY=${CMAKE_CURRENT_BINARY_DIR}
-FILTER_PATTERNS        = *.bas=${FbDoc_EXECUTABLE} \\
-                          *.bi=${FbDoc_EXECUTABLE}
+FILTER_PATTERNS        = *.bas=\"${filt_cmd}\" \\
+                          *.bi=\"${filt_cmd}\"
 FILTER_SOURCE_FILES    = YES
-FILTER_SOURCE_PATTERNS = *.bas=${FbDoc_EXECUTABLE} \\
-                          *.bi=${FbDoc_EXECUTABLE}
+FILTER_SOURCE_PATTERNS = *.bas=\"${filt_cmd}\" \\
+                          *.bi=\"${filt_cmd}\"
 "
     ${projconf}
     "\n"
@@ -94,16 +107,6 @@ FILTER_SOURCE_PATTERNS = *.bas=${FbDoc_EXECUTABLE} \\
     )
   ADD_CUSTOM_TARGET(doc) #                           generate target doc
 
-  IF(NOT ARG_NO_LFN) #                          generate file fb-doc.lfn
-    SET(lfn ${CMAKE_CURRENT_SOURCE_DIR}/fb-doc.lfn)
-    LIST(APPEND ARG_DEPENDS ${lfn})
-    ADD_CUSTOM_COMMAND(OUTPUT ${lfn}
-      COMMAND ${FbDoc_EXECUTABLE} -l ${doxyext}
-      DEPENDS ${ARG_BAS_SRC}
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      )
-    LIST(APPEND msg "LFN")
-  ENDIF()
   SET(targets "doc")
   SET(nout
 "
@@ -116,11 +119,13 @@ GENERATE_RTF     = NO
       )
   IF(NOT ARG_NO_WWW) # generate target doc_www (mirror local tree to server)
     IF(NOT ARG_MIRROR_CMD)
-      SET(ARG_MIRROR_CMD MirrorDoc.sh '--reverse --delete --verbose ${CMAKE_CURRENT_BINARY_DIR}/html public_html/Projekte/${PROJ_NAME}/doc/html')
+      SET(ARG_MIRROR_CMD MirrorDoc.sh --reverse --delete --verbose ${CMAKE_CURRENT_BINARY_DIR}/html public_html/Projekte/${PROJ_NAME}/doc/html)
     ENDIF()
-    SET(wwwfile ${CMAKE_CURRENT_BINARY_DIR}/DocWWW.time)
+    SET(wwwfile ${CMAKE_CURRENT_BINARY_DIR}/UseFbDoc~doc_www~target~touch)
     ADD_CUSTOM_COMMAND(OUTPUT ${wwwfile}
       COMMAND ${ARG_MIRROR_CMD}
+      COMMAND ${CMAKE_COMMAND} -E touch ${wwwfile}
+      VERBATIM
       )
     ADD_CUSTOM_TARGET(doc_www DEPENDS ${wwwfile})
     ADD_DEPENDENCIES(doc_www doc_htm)
@@ -174,7 +179,6 @@ LATEX_OUTPUT     = latex
     ADD_DEPENDENCIES(doc doc_pdf)
     LIST(APPEND targets "doc_pdf")
   ENDIF()
-  MESSAGE(STATUS "found ${DOXYGEN_EXECUTABLE}-${DOXYGEN_VERSION}")
   MESSAGE(STATUS "FB_DOCUMENTATION configured: ${msg} targets ${targets}")
 ENDFUNCTION(FB_DOCUMENTATION)
 
