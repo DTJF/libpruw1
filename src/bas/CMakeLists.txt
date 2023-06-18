@@ -87,7 +87,7 @@ ADD_CUSTOM_TARGET(pasm DEPENDS ${PASM_SRC}.bi  ${PASM_SRC}.p  pruw1.hp)
 
 ADD_LIBRARY(pruw1fbcode OBJECT ${SRC_BAS})
 SET_TARGET_PROPERTIES(pruw1fbcode PROPERTIES
-  COMPILE_FLAGS "-Wc -fPIC"
+  COMPILE_FLAGS "-gen gcc -Wc -O2,-fPIC,-D_FORTIFY_SOURCE=2,-Wno-maybe-uninitialized"
   )
 ADD_DEPENDENCIES(pruw1fbcode pasm)
 ADD_Fbc_SRC_DEPS(pruw1fbcode)

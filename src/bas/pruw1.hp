@@ -9,7 +9,8 @@ Since all the syntaxes have different markers for comments, we cannot
 use 'normal' comments here. We've to enclose the comment text in
 preprocessor blocks that never get parsed.
 
-\note We cannot use hexadecimal numbers here since syntaxes are different.
+\note We cannot use hexadecimal numbers here since syntaxes are
+different. That's why all numbers are decimal.
 
 \since 0.0
 */
@@ -27,13 +28,18 @@ preprocessor blocks that never get parsed.
 \def CMD_SEND
 \brief The command to initiate a bus send operation.
 
+\def __SRAM_BASE__
+\brief Use SRam (@0x10000) for PRU data RAM memory. If undefined DRam (@0x0) is used.
 \def LOG_BASE
-\brief The pointer to the first byte of logs in DRam memory (4 byte access).
+\brief The PRU pointer to the first byte of logs in RAM memory (4 byte access).
+\def LOG_MAX
+\brief The maximum offset in RAM memory (4 byte access: SRam->3071/DRam->2047).
 */
 
 // Swap the following two lines in order to compile with monitoring features.
 #define __PRUW1_MONITOR__
 #endif
+#define __SRAM_BASE__
 
 #define CMD_RESET 16
 #define CMD_TRIP  32
@@ -41,3 +47,4 @@ preprocessor blocks that never get parsed.
 #define CMD_SEND  64
 
 #define LOG_BASE  80
+#define LOG_MAX   3071

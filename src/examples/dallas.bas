@@ -17,9 +17,10 @@ Check the output for enabled monitoring feature as well, see section
 \since 0.0
 '/
 
+#INCLUDE ONCE "BBB/pruio.bi" ' header for mandatroy libpruio
+#INCLUDE ONCE "BBB/pruio_pins.bi" ' libruio pin numbering
 '#INCLUDE ONCE "BBB/pruw1.bi" ' library header (after `make install`)
 #INCLUDE ONCE "../bas/pruw1.bi" ' library header
-#INCLUDE ONCE "BBB/pruio_pins.bi" ' libruio pin numbering
 
 VAR io = NEW PruIo() '*< Pointer to libpruio instance.
 DO
@@ -29,20 +30,33 @@ DO
   'IF io->config() THEN _
                'PRINT "libpruio config failed (" & *.Errr & ")" : exit do
 
-  VAR w1 = NEW PruW1(io, P9_15) '*< Pointer to libpruw1 instance.
+  '* Create new libpruw1 instance.
+  VAR w1 = NEW PruW1(io, P9_15, PRUW1_PARPOW + PRUW1_PULLUP) ' 2 wire (VDD=GND)
+  'VAR w1 = NEW PruW1(io, P9_15) ' external VDD and pullup
+
   DO : WITH *w1
     IF .Errr THEN _
              ?"w1 CTOR failed (" & *.Errr & "/" & *.Errr & ")" : EXIT DO
+    ' Scan the bus for parasite powered devices
+    ?*iif(.checkPara(), @"At least one", @"No") _
+                        & " parasite powered device."
     ' Scan the bus for device IDs
+    ?"trying to scan bus ..."
     IF .scanBus() THEN _
                         PRINT"scanBus failed (" & *.Errr & ")" : EXIT DO
     ? ' print them out
     FOR i AS INTEGER = 0 TO UBOUND(.Slots) ' output slot# and sensor IDs
       ?"found device " & i & ", ID: " & HEX(.Slots(i), 16)
+      IF 0 = .resetBus() THEN
+        .sendRom(.Slots(i))            ' send sensor ID -> select sensor
+        .sendByte(&hB4)  ' READ_POWER command
+        ? *IIF(BIT(.recvByte(), 0), @" parasite", @" external")
+      end if
     NEXT
+
     VAR res = CAST(UBYTE PTR, @.DRam[4]) '*< pointer to measurement data
     ' Perform some measurements
-    FOR i AS INTEGER = 0 TO 10 '                output 11 blocks of data
+   FOR i AS INTEGER = 0 TO 2 '                output 11 blocks of data
       ' Start measurement, send the presense pulse (0 = OK).
       IF .resetBus() THEN                        ?"no devices" : EXIT DO
       .sendByte(&hCC)            ' SKIP_ROM command -> broadcast message
@@ -61,6 +75,8 @@ DO
         .sendRom(.Slots(s))            ' send sensor ID -> select sensor
         .sendByte(&hBE) 'READ_SCRATCH command -> sensor sends scratchpad
         .recvBlock(9) ' read data block (64 bit scratchpad and CRC byte)
+
+'?HEX(PEEK(ULONGINT, @.DRam[4]), 16)
 
         ' output result
         VAR crc = .calcCrc(9) '*< The checksum (0 = OK).

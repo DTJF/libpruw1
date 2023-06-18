@@ -64,36 +64,36 @@ websides, linked by the name in the first column.
    cd cmakefbc
    mkdir build
    cd build
-   cmake ..
+   cmake .. -DCMAKE_MODULE_PATH=../cmake/Modules
    make
    sudo make install
    ~~~
    \note Omit `sudo` in case of non-LINUX systems.
 
--# Then install libpruio, using GIT and CMake. Execute the commands ???
-   ~~~{.txt}
-   git clone https://github.com/DTJF/libpruio
-   cd libpruio
-   mkdir build
-   cd build
-   cmake ..
-   make
-   sudo make install
-   sudo ldconfig
-   sudo make init
-   ~~~
-   \note Omit `sudo` in case of non-LINUX systems.
-
--# And finaly, install fbdoc (if wanted) by using GIT and CMake.
+-# And install fbdoc (if wanted) by using GIT and CMake.
    Execute the commands
    ~~~{.txt}
    git clone https://github.com/DTJF/fbdoc
    cd fbdoc
    mkdir build
    cd build
-   cmake ..
+   cmakefbc ..
    make
    sudo make install
+   ~~~
+   \note Omit `sudo` in case of non-LINUX systems.
+
+-# Then finaly, install libpruio, using GIT and CMake. Execute the commands
+   ~~~{.txt}
+   git clone https://github.com/DTJF/libpruio
+   cd libpruio
+   mkdir build
+   cd build
+   cmakefbc ..
+   make
+   sudo make install
+   sudo ldconfig
+   sudo make init
    ~~~
    \note Omit `sudo` in case of non-LINUX systems.
 
@@ -132,7 +132,7 @@ In order to perform an out of source build, execute
 ~~~{.txt}
 mkdir build
 cd build
-cmake ..
+cmakefbc ..
 make
 sudo make install
 sudo ldconfig
@@ -157,7 +157,7 @@ In order to test the installation, build and run an example application
 
 ~~~{.txt}
 make examples
-sudo src/examples/dallas
+src/examples/dallas
 ~~~
 
 The example uses header pin `P9_15` for the one-wire bus. Connect this
