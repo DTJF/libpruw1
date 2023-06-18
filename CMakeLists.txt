@@ -31,6 +31,11 @@ ADD_SUBDIRECTORY(doxy)
 IF(PASM_ASSEMBER_WORKS)
   ADD_LIBRARY(pruw1 SHARED $<TARGET_OBJECTS:pruw1fbcode>)
   #ADD_DEPENDENCIES(pruw1 pruw1fbcode)
+  SET_TARGET_PROPERTIES(pruw1 PROPERTIES
+    LINK_FLAGS "-v -Wl -z,relro"
+    SOVERSION "o" # adapt <Package: ...> in debian/control
+    #NO_SONAME "YES"
+    )
 
   ADD_SUBDIRECTORY(src/examples)
   ADD_DEPENDENCIES(examples pruw1)
