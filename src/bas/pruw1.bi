@@ -7,7 +7,6 @@ compile against the library (#`INCLUDE ONCE "BBB/pruw1.bi"`).
 \since 0.0
 '/
 
-#INCLUDE ONCE "BBB/pruio.bi"
 #INCLIB "pruw1"
 
 TYPE AS    SHORT Int16

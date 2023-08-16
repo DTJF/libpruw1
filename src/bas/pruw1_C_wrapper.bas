@@ -13,6 +13,7 @@ Copyright 2015-\Year by Thomas{ dOt ]Freiherr[ At ]gmx[ DoT }net
 '/
 
 
+#INCLUDE ONCE "BBB/pruio.bi"
 ' driver header file
 #include ONCE "pruw1.bi"
 
