@@ -1,5 +1,5 @@
 Welcome to (the currently experimental -- please report bugs -- version
-0.2 of) *libpruw1* library,
+0.0 of) *libpruw1* library,
 
 - a [one wire (W1)](https://en.wikipedia.org/wiki/1-Wire) driver for AM335x micro processors,
 - designed for [Beaglebone hardware](http://www.beaglebone.org), providing
@@ -43,7 +43,7 @@ Licence:
 libpruw1 (LGPLv2.1):
 --------------------------
 
-Copyright &copy; 2015-2022 by Thomas{ doT ]Freiherr[ At ]gmx[ DoT }net
+Copyright &copy; 2015-2023 by Thomas{ doT ]Freiherr[ At ]gmx[ DoT }net
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the Lesser GNU General Public License (LGPLv2.1)
@@ -64,7 +64,7 @@ http://www.gnu.org/licenses/lgpl-2.0.html
 Examples and utility programs (GPLv3):
 --------------------------------------
 
-Copyright &copy; 2015-2022 by Thomas{ doT ]Freiherr[ At ]gmx[ DoT }net
+Copyright &copy; 2015-2023 by Thomas{ doT ]Freiherr[ At ]gmx[ DoT }net
 
 The examples of this bundle are free software as well; you can
 redistribute them and/or modify them under the terms of the GNU
