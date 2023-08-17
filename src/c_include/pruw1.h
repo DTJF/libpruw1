@@ -65,6 +65,20 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 */
 Int16 T_FAM20(UInt8* Rom);
 
+/*! \brief Masks for line idle configuration
+
+This enumerators are for use in CTOR PruW1::PruW1() to configure the 
+line idle modus, regarding parasite power support and the use of the 
+internal pull up resistor.
+
+\since 0.4
+*/
+enum LineModus{
+  PRUW1_PARPOW = 0x01 //!< Set line output high during idle
+ ,PRUW1_PULLUP = 0x10 //!< Activate the internal pull up resistor
+};
+
+
 /*! \brief The PruW1 C wrapper structure.
 
 The class providing the one wire features.
@@ -77,35 +91,49 @@ typedef struct pruw1{
     Mask,    //!< The mask to select the pin in use.
     PruNo,   //!< The number of the PRU to use
     PruIRam, //!< The PRU instruction ram to use.
-    PruDRam, //!< The PRU data ram to use.
+    PruLMod, //!< The line modus to use (parasite power).
     *DRam,   //!< A pointer to the libpruw1 DRam.
     *Raw;    //!< A pointer to the libpruio raw GPIO data
 
   //! A pre-computed table for fast CRC checksum computation.
   UInt8 crc8_table[255 + 1];
-  //UInt64 *Slots; //!< The array to store the device IDs.
+  //UInt64 *Slots; //!< The FB array to store the device IDs.
 }pruw1;
 
 /** \brief Wrapper function for the constructor PruW1::PruW1().
 \param P A pointer to the libpruio instance (for pinmuxing).
 \param B The header pin to use as W1 bus data line.
+\param M The operating modus (Parasite power, internal pull-up).
 \returns A pointer to the new instance, call pruw1_destroy() when done.
 
 The constructor is designed to
 
 - allocate and initialize memory for the class variables,
-- check the header pin configuration (and, if not matching, try to adapt it - root privileges),
 - evaluate the free PRU (not used by libpruio)
+- check the header pin configuration (and, if not matching, try to adapt it - root privileges),
 - load the firmware and start it
 
-In case of success the variable PruW1::Errr is 0 (zero) and you can
-start to communicate on the bus. Otherwise the variable contains an
-error message. In that case call the destructor (and do not start any
-communication).
+In case of success the variable PruW1::Errr is 0 (zero) and you can 
+start to communicate on the bus. Otherwise the variable contains an 
+error message. The string is owned by \Proj and should not be freed. In 
+that case call the destructor (and do not start any communication).
+
+The operating modus M is introduced in version 0.4 in order to 
+influence power consumption (ie. for batterie powered systems):
+
+- Bit-0 controlls the idle state of the line. By default the line is in 
+input state and the external pull-up resistor pulls the line high 
+during idle. Set the bit to configure the line for parasite power (= 
+output/high during idle) by the costs of more energy consumption (max. 
+current = 6 mA).
+
+- Bit-1 controlls the resistor configuration. By default an external 
+resistor is used at the line (usually 4k7 Ohm). Set the bit to 
+configure the internal pull up resistor (10k). 
 
 \since 0.0
 */
-pruw1* pruw1_new(pruIo *P, UInt8 B);
+pruw1* pruw1_new(pruIo *P, UInt8 B, UInt8 M);
 
 /** \brief Wrapper function for the destructor PruW1::~PruW1().
 \param W1 The driver instance.
@@ -220,6 +248,19 @@ are responding, the return value is 1.
 */
 UInt8 pruw1_resetBus(pruw1* W1);
 
+
+/** \brief Check line for parasite powered device.
+\returns TRUE (1) if at least one device uses parasite power, FALSE (0) otherwise.
+
+This function triggers a broadscast READ POWER command. The returned 
+value is the byte received. If the function returns FALSE (0) there's 
+no parasite powered device on the bus (all VDD=3V3). In contrast, TRUE 
+(1) means at least one device has no external power line (VDD=GND) and 
+needs the strong pullup in idle mode.
+
+\since 0.4
+*/
+UInt8 pruw1_checkPara(pruw1* W1);
 
 /** \brief Compute the CRC checksum for data package.
 \param W1 The driver instance.

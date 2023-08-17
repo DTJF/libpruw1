@@ -4,20 +4,20 @@
 
 #include "pruw1.hp"
 
-#define DRam C24
 #define DIN 0x38
 #define CDO 0x90
 #define SDO 0x94
 
-#define DeAd r1
-#define Msk1 r2
-#define Msk0 r3
+#define CMD  r1
+#define DeAd r2
+#define Msk1 r3
+#define Msk0 r4
 
-#define DAT  r4
-#define DATC r4.b2
-#define DATD r4.b0
-#define uSEC r5
-#define CMD  r6
+#define RAM  r5
+#define DAT  r6
+#define DATC r6.b2
+#define DATD r6.b0
+#define uSEC r7
 #define XX   r8
 #define MonC r9
 
@@ -25,13 +25,13 @@
 #define UR r11
 #define U2 r12
 
-// memory usage DRam:
-// 00 CMD   Command to execute
-// 04 DeAd  Device adress of GPIO subsystem
-// 08 Msk1  Mask to separate the GPIO bit
-// 0C MonC  Monitoring counter
-// 10 Data  Data to exchange between PRU and ARM
-// 100 Log data  Data for monitoring feature
+// memory usage RAM:
+// 0x00 CMD   Command to execute
+// 0x04 DeAd  Device adress of GPIO subsystem
+// 0x08 Msk1  Mask to separate the GPIO bit
+// 0x0C MonC  Monitoring counter
+// 0x10 Data  Data to exchange between PRU and ARM
+// 0x140 LogData  Data for monitoring feature (=LOG_BASE*4)
 
 .macro SWITCH_INP
   LBBO OE,  DeAd, 0x34, 4  // load OE
@@ -46,32 +46,37 @@
 .endm
 
 .origin 0
-LDI  XX, LOG_BASE*4
-LDI  MonC, 0x0
-
-ZERO &r0, 4             // clear register R0
-MOV  DeAd, 0x22020      // load address
-SBBO r0, DeAd, 0, 4     // make C24 point to 0x0 (this PRU DRAM) and C25 point to 0x2000 (the other PRU DRAM)
-
-LBCO DeAd, DRam, 0x04, 4*2 // load device adress and Msk1
-MOV  Msk0, 0xFFFFFFFF
+#ifdef __SRAM_BASE__
+MOV  RAM, 0x10000  // load SRam address
+#else
+LDI  RAM, 0        // load DRam address
+#endif
+LBBO CMD, RAM, 0x0, 4*3  // get command, device adress and Msk1
+MOV  Msk0, 0xFFFFFFFF  // init AND bit mask
 XOR  Msk0, Msk0, Msk1
-
-SWITCH_INP
+LDI  XX, LOG_BASE*4    // init write offset
 
 main_loop:
-  SBCO MonC,  DRam, 0x0C, 4  // save bit counter
-  LDI  MonC,  0              // reset counter
-  LDI  CMD, 0
-  SBCO CMD, DRam, 0x00, 4    // clear command
+  QBBS parpower, CMD.b0, 0 // parasit power required?      
+  SWITCH_INP
+  JMP mainCont
 
-  getCMD:
-  LBCO CMD, DRam, 0x00, 4    // load command
-  QBEQ getCMD, CMD, 0        // wait for command
+  parpower:
+  SBBO Msk1, DeAd, SDO, 4 // write set data out --> HIGH
+  SWITCH_OUT              
+                          
+  mainCont:               
+  SBBO MonC, RAM, 0x0C, 4 // save bit counter
+  LDI  MonC,  0           // reset counter
+  SBBO MonC, RAM, 0x00, 4 // clear command parameter
+                          
+  getCMD:                 
+  LBBO CMD, RAM, 0x00, 4  // load command
+  QBEQ getCMD, CMD, 0     // wait for command
 
-  QBEQ sendcmd, CMD.b0, CMD_SEND
-  QBEQ recvcmd, CMD.b0, CMD_RECV
-  QBEQ triplet, CMD.b0, CMD_TRIP
+  QBLE sendcmd, CMD.b0, CMD_SEND
+  QBLE recvcmd, CMD.b0, CMD_RECV
+  QBLE triplet, CMD.b0, CMD_TRIP
 
 resetcmd:
   SWITCH_OUT
@@ -91,7 +96,7 @@ resetcmd:
   LDI  DAT, 1
 
   resetZero:
-  SBCO DAT, DRam, 0x10, 4    // write result to data array
+  SBBO DAT, RAM, 0x10, 4     // write result to data array
 
   LDI  uSEC, 380
   CALL Delay
@@ -107,11 +112,13 @@ recvcmd:
     recv8loop:
       SWITCH_OUT
       SBBO Msk1, DeAd, CDO, 4  // write clear data out --> LOW
-      LDI  uSEC,  6
+      //LDI  uSEC,  6
+      LDI  uSEC,  2
       CALL Delay
 
       SWITCH_INP
-      LDI  uSEC,  9
+      //LDI  uSEC,  9
+      LDI  uSEC,  13
       CALL Delay
 
       LBBO UR, DeAd, DIN, 4    // read DATAIN
@@ -126,7 +133,7 @@ recvcmd:
       ADD  DATC, DATC, 1       // increase counter
     QBGT recv8loop, DATC, 8    // next bit
 
-    SBCO DATD, DRam, CMD.w2, 1 // write result to data array
+    SBBO DATD, RAM, CMD.w2, 1  // write result to data array
     ADD  CMD.w2, CMD.w2, 1     // increase pointer
   recvLoop:
 
@@ -140,9 +147,11 @@ triplet:
     SBBO Msk1, DeAd, CDO, 4    // write clear data out --> LOW
 
     LDI  uSEC,  6
+    LDI  uSEC,  2
     CALL Delay
     SWITCH_INP
-    LDI  uSEC,  9
+    //LDI  uSEC,  9
+    LDI  uSEC,  13
     CALL Delay
 
     LBBO UR, DeAd, DIN, 4      // read DATAIN
@@ -157,7 +166,7 @@ triplet:
     CALL Delay
   tripLoop:
   QBNE tripValid, DATD, 3   // is valid?
-  SBCO DAT, DRam, 0x10, 4   // error, store result
+  SBBO DAT, RAM, 0x10, 4    // error, store result
   JMP main_loop
 
   tripValid:
@@ -173,7 +182,7 @@ triplet:
   LDI  DATD, 5
 
   tripWrite:
-  SBCO DAT, DRam, 0x10, 4   // save return value
+  SBBO DAT, RAM, 0x10, 4    // save return value
 
   SWITCH_OUT
   SBBO Msk1, DeAd, CDO, 4   // write clear data out --> LOW
@@ -185,14 +194,16 @@ triplet:
   JMP tripEnd
 
   trip1:
-  LDI  uSEC,  6
+  //LDI  uSEC,  6
+  LDI  uSEC,  2
   CALL Delay
-  LDI  uSEC, 64
+  //LDI  uSEC, 64
+  LDI  uSEC, 68
 
   tripEnd:
   SBBO Msk1, DeAd, SDO, 4   // write set data out --> HIGH
   CALL Delay
-  SWITCH_INP
+  //SWITCH_INP
 JMP main_loop
 
 
@@ -202,7 +213,7 @@ sendcmd:
 
   LOOP sendLoop, CMD.b1
     LDI  DATC, 0                // reset counter
-    LBCO DATD, DRam, CMD.w2, 1  // load byte from array
+    LBBO DATD, RAM, CMD.w2, 1   // load byte from array
 
     send8:
       SBBO Msk1, DeAd, CDO, 4   // write clear data out --> LOW
@@ -226,7 +237,7 @@ sendcmd:
 
     ADD  CMD.w2, CMD.w2, 1    // increase pointer for next byte
   sendLoop:
-  SWITCH_INP
+  //SWITCH_INP
 
 JMP main_loop
 
@@ -239,11 +250,8 @@ Delay:
   SUB  UR, UR, 1        // decrease counter
   QBLT delayCnt, UR, 1  // check end
 
-  SUB  uSEC, uSEC, 1    // decrease usec counter
-  QBLT Delay, uSEC, 0   // check usec counter
-  RET
-
 #else
+  #note *** Monitoring Mode ***
 
   LDI  UR, 91           // 100 cycles = 1 usec
   delayCnt:
@@ -258,10 +266,14 @@ Delay:
   noBit:
   ADD  XX.b2, XX.b2, 1        // increase bit counter
   QBGT NoOpps, XX.b2, 8       // if no overflow, continue
-  SBCO XX.b3, DRam, XX.w0, 1  // .w0 memory pointer
+  SBBO XX.b3, RAM, XX.w0, 1   // .w0 memory pointer
   LDI  XX.w2, 0               // reset data and bit counter
   ADD  XX.w0, XX.w0, 1        // increase memory pointer
-  QBBC delayCont, XX.w0, 13   // check upper bound
+#ifdef __SRAM_BASE__
+  QBGT delayCont, XX.b1, 48   // check upper bound SRam
+#else
+  QBGT delayCont, XX.b1, 32   // check upper bound DRam
+#endif
   LDI  XX, LOG_BASE*4         // reset memory pointer
   JMP  delayCont
 
@@ -275,8 +287,9 @@ Delay:
 
   delayCont:
   ADD  MonC, MonC, 1    // increase bit counter
+
+#endif
+
   SUB  uSEC, uSEC, 1    // decrease usec counter
   QBLT Delay, uSEC, 0   // check usec counter
   RET
-
-#endif

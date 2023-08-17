@@ -19,10 +19,9 @@ Check the output for enabled monitoring feature as well, see section
 
 #include <stdio.h>
 #include <unistd.h>
-#include "../c_include/pruw1.h" // library header
+#include "../c_include/pruw1.h" // library header (local)
 //#include "libpruw1/pruw1.h" //     library header when installed
 #include "libpruio/pruio_pins.h" // libruio pin numbering
-//#include <libpruio/pruio_pins.h> // libruio pin numbering
 
 //! The main function.
 int main(int argc, char **argv)
@@ -32,7 +31,9 @@ int main(int argc, char **argv)
   float val;
   char *txt;
   UInt64 id;
-  pruIo *io = pruio_new(PRUIO_DEF_ACTIVE, 4, 0x98, 0); //! create new driver structure
+  // Create new libpruio instance.
+  pruIo *io = pruio_new(PRUIO_DEF_ACTIVE, 4, 0x98, 0);
+
   do {
     if (io->Errr) {
                 printf("libpruio CTOR failed (%s)\n", io->Errr); break;}
@@ -40,13 +41,17 @@ int main(int argc, char **argv)
     //if (io->config()) {
               //printf("libpruio config failed (%s)\n", io->Errr); break;}
 
-    pruw1 *w1 = pruw1_new(io, P9_15); //! Pointer to libpruw1 instance.
+    // Create new libpruw1 instance.
+    pruw1 *w1 = pruw1_new(io, P9_15, PRUW1_PARPOW + PRUW1_PULLUP); // 2 wire (VDD=GND))
+    //pruw1 *w1 = pruw1_new(io, P9_15, 0); // external VDD and pullup
     if (w1->Errr) {
                 printf("libpruw1 CTOR failed (%s)\n", w1->Errr); break;}
+    // Scan the bus for parasite powered devices
+    printf("%s parasite powered device.",
+           (pruw1_checkPara(w1) ? "At least one" : "No"));
     // Scan the bus for device IDs
     if (pruw1_scanBus(w1)) {
                       printf("scanBus failed (%s)\n", w1->Errr); break;}
-    printf("\nsizeof(UInt64)=%d",sizeof(UInt64));
     for (i = 0; i <= pruw1_getSlotMax(w1); i++)
     {
       printf("\nfound device %d, ID: %llX", i, pruw1_getId(w1, i));
@@ -98,21 +103,3 @@ int main(int argc, char **argv)
   pruio_destroy(io);        /* destroy driver structure */
 	return 0;
 }
-
-
-//DO
-    //' Perform some measurements
-    //FOR i AS INTEGER = 0 TO 10 '                output 11 blocks of data
-      //FOR s AS INTEGER = 0 TO UBOUND(.Slots)
-        //SELECT CASE AS CONST PEEK(UBYTE, @.Slots(s)) '        check type
-        //CASE &h10, &h20, &h22, &h28, &h3B, &h42 '   a Dallas sensor type
-        //CASE ELSE          /' no dallas sensor -> skip '/ : CONTINUE FOR
-        //END SELECT
-
-
-      //NEXT
-    //NEXT
-  //END WITH : LOOP UNTIL 1
-  //DELETE w1                         '   destroy w1 UDT
-//LOOP UNTIL 1
-//DELETE io                         '   destroy libpruio UDT

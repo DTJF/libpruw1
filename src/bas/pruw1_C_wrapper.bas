@@ -19,9 +19,10 @@ Copyright 2015-\Year by Thomas{ dOt ]Freiherr[ At ]gmx[ DoT }net
 '* \brief Wrapper function for constructor PruW1::PruW1().
 FUNCTION pruw1_new CDECL ALIAS "pruw1_new"( _
   BYVAL P AS PruIo PTR, _
-  BYVAL B AS Uint8) AS PruW1 PTR EXPORT
+  BYVAL B AS Uint8, _
+  BYVAL M AS Uint8) AS PruW1 PTR EXPORT
 
-  RETURN NEW PruW1(P, B)
+  RETURN NEW PruW1(P, B, M)
 END FUNCTION
 
 '* \brief Wrapper function for destructor PruW1::~PruW1.
@@ -47,7 +48,7 @@ SUB pruw1_sendByte CDECL ALIAS "pruw1_sendByte"( _
   W1->sendByte(V)
 END SUB
 
-'* \brief Wrapper function for PruW1::sendByte().
+'* \brief Wrapper function for PruW1::sendRom().
 SUB pruw1_sendRom CDECL ALIAS "pruw1_sendRom"( _
   BYVAL W1 AS PruW1 PTR, _
   BYVAL V AS UInt64) EXPORT
@@ -82,6 +83,13 @@ FUNCTION pruw1_resetBus CDECL ALIAS "pruw1_resetBus"( _
   BYVAL W1 AS PruW1 PTR) AS UInt8 EXPORT
 
   RETURN W1->resetBus()
+END FUNCTION
+
+'* \brief Wrapper function for PruW1::checkPara().
+FUNCTION pruw1_checkPara CDECL ALIAS "pruw1_checkPara"( _
+  BYVAL W1 AS PruW1 PTR) AS UInt8 EXPORT
+
+  RETURN W1->checkPara()
 END FUNCTION
 
 '* \brief Wrapper function for PruW1::calcCrc().

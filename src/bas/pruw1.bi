@@ -18,6 +18,20 @@ DECLARE FUNCTION T_fam10 (BYVAL AS UInt8 PTR) AS Int16
 DECLARE FUNCTION T_fam20 (BYVAL AS UInt8 PTR) AS Int16
 
 
+/'* \brief Masks for line idle configuration
+
+This enumerators are for use in CTOR PruW1::PruW1() to configure the 
+line idle modus, regarding parasite power support and the use of the 
+internal pull up resistor.
+
+\since 0.4
+'/
+ENUM LineModus
+  PRUW1_PARPOW = &b01 '*< Set line output high during idle
+  PRUW1_PULLUP = &b10 '*< Activate the internal pull up resistor
+END ENUM
+
+
 /'* \brief The W1 driver class.
 
 The class providing the one wire features.
@@ -30,9 +44,9 @@ TYPE PruW1
       Mask _     '*< The mask to select the pin in use.
     , PruNo _    '*< The number of the PRU to use
     , PruIRam _  '*< The PRU instruction ram to use.
-    , PruDRam    '*< The PRU data ram to use.
+    , PruLMod    '*< The line modus to use (parasite power).
   AS UInt32 PTR _
-      DRam _     '*< A pointer to the libpruw1 DRam.
+      DRam _     '*< A pointer to the PRU Data Ram.
     , Raw        '*< A pointer to the libpruio raw GPIO data
   '* A pre-computed table for fast CRC checksum computation.
   AS Uint8 Crc8_Table(255) = { _
@@ -55,7 +69,7 @@ TYPE PruW1
   }
   AS UInt64 Slots(ANY) '*< The array to store the device IDs.
 
-  DECLARE CONSTRUCTOR(BYVAL AS PruIo PTR, BYVAL AS Uint8)
+  DECLARE CONSTRUCTOR(BYVAL AS PruIo PTR, BYVAL AS Uint8, BYVAL AS Uint8 = 0)
   DECLARE DESTRUCTOR()
   DECLARE FUNCTION scanBus(BYVAL AS UInt8 = &hF0)AS ZSTRING PTR
   DECLARE SUB sendByte(BYVAL AS UInt8)
@@ -65,5 +79,6 @@ TYPE PruW1
   DECLARE FUNCTION getIn() AS UInt8
   DECLARE FUNCTION resetBus() AS UInt8
   DECLARE FUNCTION calcCrc(BYVAL AS UInt8) AS UInt8
+  DECLARE FUNCTION checkPara() AS UInt8
   DECLARE SUB prot()
 END TYPE

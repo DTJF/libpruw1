@@ -7,16 +7,21 @@ functions to decode the temperature from the received data.
 \since 0.0
 '/
 
-#INCLUDE ONCE "w1_prucode.bi" ' PRU firmware
-#INCLUDE ONCE "w1_prucode.hp" ' PRU syncronization
-#INCLUDE ONCE "pruw1.bi" ' FB declarations
+' PASM binary as FB array
+#INCLUDE ONCE "w1_prucode.bi"
+' PASM defines (syncronization FB/PASM)
+#INCLUDE ONCE "pruw1.hp"
+' FB header
+#INCLUDE ONCE "pruw1.bi"
+' uio driver header file
+#INCLUDE ONCE "BBB/pruio_prussdrv.bi"
 
 #IFNDEF __PRUW1_MONITOR__
  '* Macro to call a function on the PRU, monitoring features disabled.
  #MACRO PRUCALL(_C_,_V_,_T_)
   WHILE DRam[0] : SLEEP 1 : WEND
   _V_
-  DRam[0] = _C_
+  DRam[0] = _C_ + PruLMod
   WHILE DRam[0] : SLEEP 1 : WEND
  #ENDMACRO
 #ELSE
@@ -24,7 +29,7 @@ functions to decode the temperature from the received data.
  #MACRO PRUCALL(_C_,_V_,_T_)
   WHILE DRam[0] : SLEEP 1 : ?"."; : WEND
   _V_
-  DRam[0] = _C_
+  DRam[0] = _C_ + PruLMod
   ?!"\n";_T_; " command=&h"; HEX(DRam[0], 4); " ";
   WHILE DRam[0] : SLEEP 1 : ?"."; : WEND
   prot()
@@ -34,53 +39,74 @@ functions to decode the temperature from the received data.
 /'* \brief The constructor configuring the pin, loading and starting the PRU code.
 \param P A pointer to the libpruio instance (for pinmuxing).
 \param B The header pin to use as W1 bus data line.
+\param M The operating modus (Parasite power, internal pull-up).
 
 The constructor is designed to
 
 - allocate and initialize memory for the class variables,
-- check the header pin configuration (and, if not matching, try to adapt it - root privileges),
 - evaluate the free PRU (not used by libpruio)
+- check the header pin configuration (and, if not matching, try to adapt it - root privileges),
 - load the firmware and start it
 
-In case of success the variable PruW1::Errr is 0 (zero) and you can
-start to communicate on the bus. Otherwise the variable contains an
-error message. In that case call the destructor (and do not start any
-communication).
+In case of success the variable PruW1::Errr is 0 (zero) and you can 
+start to communicate on the bus. Otherwise the variable contains an 
+error message. The string is owned by \Proj and should not be freed. In 
+that case call the destructor (and do not start any communication).
+
+The operating modus M is introduced in version 0.4 in order to 
+influence power consumption (ie. for batterie powered systems):
+
+- Bit-0 controlls the idle state of the line. By default the line is in 
+input state and the external pull-up resistor pulls the line high 
+during idle. Set the bit to configure the line for parasite power (= 
+output/high during idle) by the costs of more energy consumption (max. 
+current = 6 mA).
+
+- Bit-1 controlls the resistor configuration. By default an external 
+resistor is used at the line (usually 4k7 Ohm). Set the bit to 
+configure the internal pull up resistor (10k). 
 
 \since 0.0
 '/
-CONSTRUCTOR PruW1(BYVAL P AS PruIo PTR, BYVAL B AS Uint8)
+CONSTRUCTOR PruW1(BYVAL P AS PruIo PTR, BYVAL B AS Uint8, BYVAL M AS Uint8 = 0)
+  IF 0 = P ORELSE P->Errr THEN Errr = @"libpruio issue" : EXIT CONSTRUCTOR
   WITH *P
-    IF .Gpio->config(B, PRUIO_GPIO_IN) THEN _
+    IF B > UBOUND(.BallGpio) THEN _
+                         Errr = @"invalid pin number" : EXIT CONSTRUCTOR
+    IF .Gpio->config(B, IIF(BIT(M, 1), PRUIO_GPIO_IN_1, PRUIO_GPIO_IN)) THEN _
              Errr = @"pin configuration not matching" : EXIT CONSTRUCTOR
-
     VAR r = .BallGpio(B) _ ' resulting GPIO (index and bit number)
       , i = r SHR 5 _      ' index of GPIO
       , n = r AND 31       ' number of bit
     Mask = 1 SHL n
     Raw = @.Gpio->Raw(i)->Mix
+    PruLMod = M AND &b1
     IF .PruNo THEN
       PruNo = 0
       PruIRam = PRUSS0_PRU0_IRAM
-      PruDRam = PRUSS0_PRU0_DATARAM
+#IFDEF __SRAM_BASE__
+      prussdrv_map_prumem(PRUSS0_SRAM, CAST(ANY PTR, @DRam))
     ELSE
+      prussdrv_map_prumem(PRUSS0_SRAM, CAST(ANY PTR, @DRam))
+#ELSE
+      prussdrv_map_prumem(PRUSS0_PRU0_DRAM, CAST(ANY PTR, @DRam))
+    ELSE
+      prussdrv_map_prumem(PRUSS0_PRU1_DRAM, CAST(ANY PTR, @DRam))
+#ENDIF
       PruNo = 1
       PruIRam = PRUSS0_PRU1_IRAM
-      PruDRam = PRUSS0_PRU1_DATARAM
     END IF
 
-    prussdrv_map_prumem(PruDRam, CAST(ANY PTR, @DRam))
-
     prussdrv_pru_disable(PruNo) '        disable PRU (if running before)
-    DRam[0] = 0
+    DRam[0] = PruLMod
     DRam[1] = .Gpio->Conf(i)->DeAd + &h100 ' device adress
     DRam[2] = Mask                         ' the mask to related bit
 
     VAR l = (UBOUND(Pru_W1) + 1) * SIZEOF(Pru_W1(0))
-    IF 0 >= prussdrv_pru_write_memory(PRUSS0_PRU0_IRAM, 0, @Pru_W1(0), l) THEN _
+    IF 0 >= prussdrv_pru_write_memory(PruIRam, 0, @Pru_W1(0), l) THEN _
                 Errr = @"failed loading PRU firmware" : EXIT CONSTRUCTOR
-    prussdrv_pruintc_init(@PRUSS_INTC_INITDATA) ' interrupts initialization
     prussdrv_pru_enable(PruNo)
+    IF PruLMod THEN SLEEP 1 ' load capacitors
   END WITH
 END CONSTRUCTOR
 
@@ -169,7 +195,7 @@ END SUB
 
 
 /'* \brief Send a ROM id to the bus (to select a device).
-\param V The ROM id (8 btes) to send.
+\param V The ROM id (8 bytes) to send.
 
 This procedure sends a ROM ID to the bus. It's usually used to adress a
 single device, ie. to read its scratchpad.
@@ -198,7 +224,7 @@ at byte offset `&h10` (= DRam[4]).
 '/
 FUNCTION PruW1.recvBlock(BYVAL N AS UInt8) AS UInt8
 #IFDEF __PRUW1_MONITOR__
-  IF N > 112 THEN Errr = @"block too big (< 112 bytes in monitoring)" : RETURN 0
+  IF N > (LOG_BASE*4 - &h10) THEN Errr = @"block too big (mind monitoring mode)" : RETURN 0
 #ENDIF
   PRUCALL(CMD_RECV + N SHL 8,,"recvBlock: " & N)
   RETURN N
@@ -250,6 +276,26 @@ FUNCTION PruW1.resetBus() AS UInt8
 END FUNCTION
 
 
+/'*  \brief Check line for parasite powered device.
+\param Id Sensor Id, or 0 (zero) for broadcast. 
+\returns TRUE (1) if at least one device uses parasite power, FALSE (0) otherwise.
+
+This function triggers a broadscast READ POWER command. The returned 
+value is the (inverted) bit received. If the function returns FALSE (0) 
+there's no parasite powered device on the bus (all VDD=3V3). In 
+contrast, TRUE (1) means that at least one device has no external power 
+line (VDD=GND) and needs the strong pullup in idle mode.
+
+\since 0.4
+'/
+FUNCTION PruW1.checkPara()AS UInt8
+  IF resetBus() THEN                Errr = @"no devices" : RETURN 0
+  sendByte(&hCC)  ' SKIP_ROM command -> broadcast message
+  sendByte(&hB4)  ' READ_POWER command
+  RETURN IIF(BIT(recvByte(), 0), 0, 1)
+END FUNCTION
+
+
 /'* \brief Compute the CRC checksum for data package.
 \param N The length of the package in bytes.
 \returns The CRC checksum for a data package (0 = success).
@@ -286,7 +332,7 @@ SUB PruW1.prot()
   FOR i AS INTEGER = 1 TO DRam[3]
     IF BIT(DRam[p], b) THEN ?"-"; ELSE ?"_";
     IF 0 = i MOD 70 THEN ?
-    IF b < 31 THEN b += 1 ELSE b = 0 : IF p < 2047 THEN p += 1 ELSE p = LOG_BASE
+    IF b < 31 THEN b += 1 ELSE b = 0 : IF p < LOG_MAX THEN p += 1 ELSE p = LOG_BASE
   NEXT : ?
 END SUB
 
@@ -306,7 +352,6 @@ Parameter `Rom` is usually the adress of PruW1::DRam[4].
 \since 0.0
 '/
 FUNCTION T_fam10(BYVAL Rom AS UBYTE PTR) AS SHORT EXPORT
-  'RETURN (IIF(Rom[1], Rom[0] - 256, Rom[0]) SHR 1) SHL 8 + (Rom[7] - Rom[6] - 4) SHL 4
   RETURN IIF(Rom[1], Rom[0] - 256, Rom[0]) SHL 7 + (Rom[7] - Rom[6] - 4) SHL 4
 END FUNCTION
 

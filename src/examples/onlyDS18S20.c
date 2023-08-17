@@ -40,7 +40,8 @@ int main(int argc, char **argv)
     //if (io->config()) {
               //printf("libpruio config failed (%s)\n", io->Errr); break;}
 
-    pruw1 *w1 = pruw1_new(io, P9_15); //! Pointer to libpruw1 instance.
+    // Create new libpruw1 instance.
+    pruw1 *w1 = pruw1_new(io, P9_15, 0);
     if (w1->Errr) {
                 printf("libpruw1 CTOR failed (%s)\n", w1->Errr); break;}
     // Scan the bus for device IDs
