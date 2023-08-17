@@ -3,7 +3,7 @@
 #
 # It defines the following ...
 #
-# Copyright (C) 2014-2019, Thomas{ dOt ]Freiherr[ aT ]gmx[ DoT }net
+# Copyright (C) 2014-2023, Thomas{ dOt ]Freiherr[ aT ]gmx[ DoT }net
 # License GPLv3 (see http://www.gnu.org/licenses/gpl-3.0.html)
 #
 # See ReadMe.md for details.
@@ -86,7 +86,7 @@ ALIASES += \"Mail=${PROJ_MAIL}\" \\
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       )
     LIST(APPEND msg "LFN")
-    SET(filt_cmd "\\\"${FbDoc_EXECUTABLE} -L ${lfn}\\\"")
+    SET(filt_cmd "${FbDoc_EXECUTABLE} -L ${lfn}")
   ELSE()
     SET(filt_cmd "${FbDoc_EXECUTABLE}")
   ENDIF()

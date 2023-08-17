@@ -1,7 +1,7 @@
 #
 # CMakeFbc - CMake module for FreeBASIC Language
 #
-# Copyright (C) 2014-2019, Thomas{ dOt ]Freiherr[ aT ]gmx[ DoT }net
+# Copyright (C) 2014-2023, Thomas{ dOt ]Freiherr[ aT ]gmx[ DoT }net
 #
 # All rights reserved.
 #
