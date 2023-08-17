@@ -16,7 +16,7 @@ BAS_SRC
   ${SRC_BAS}
   ${SRC_BI}
 DEPENDS
-  pruw1.hp
+  "../src/bas/pruw1.hp"
   "../src/c_include/pruw1.h"
   "../src/doc/_1_introduction.md"
   "../src/doc/_2_preparation.md"

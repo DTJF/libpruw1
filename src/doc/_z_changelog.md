@@ -23,6 +23,7 @@ Released on 2020 Nov.
 - fix: using pruio_prussdrv.bi (libpruio-0.6) header
 - fix: Doc-Chapter Preparation adapted
 - fix: CTOR uses correct IRam
+- fix: example codes
 
 # libpruw1-0.2 {#SecV-0-2}
 

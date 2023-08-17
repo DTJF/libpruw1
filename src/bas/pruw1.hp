@@ -9,7 +9,7 @@ Since all the syntaxes have different markers for comments, we cannot
 use 'normal' comments here. We've to enclose the comment text in
 preprocessor blocks that never get parsed.
 
-\note We cannot use hexadecimal numbers here since syntaxes are 
+\note We cannot use hexadecimal numbers here since syntaxes are
 different. That's why all numbers are decimal.
 
 \since 0.0

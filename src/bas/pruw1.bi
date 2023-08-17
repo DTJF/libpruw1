@@ -27,7 +27,7 @@ internal pull up resistor.
 '/
 ENUM LineModus
   PRUW1_PARPOW = &b01 '*< Set line output high during idle
-  PRUW1_PULLUP = &b10 '*< Activate the internal pull up resistor
+  PRUW1_PULLUP = &b10 '*< Activate internal pull up resistor (default)
 END ENUM
 
 
@@ -68,7 +68,7 @@ TYPE PruW1
   }
   AS UInt64 Slots(ANY) '*< The array to store the device IDs.
 
-  DECLARE CONSTRUCTOR(BYVAL AS PruIo PTR, BYVAL AS Uint8, BYVAL AS Uint8 = 0)
+  DECLARE CONSTRUCTOR(BYVAL AS PruIo PTR, BYVAL AS Uint8, BYVAL AS Uint8 = PRUW1_PULLUP)
   DECLARE DESTRUCTOR()
   DECLARE FUNCTION scanBus(BYVAL AS UInt8 = &hF0)AS ZSTRING PTR
   DECLARE SUB sendByte(BYVAL AS UInt8)

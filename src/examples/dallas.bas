@@ -17,9 +17,10 @@ Check the output for enabled monitoring feature as well, see section
 \since 0.0
 '/
 
+#INCLUDE ONCE "BBB/pruio.bi" ' header for mandatroy libpruio
+#INCLUDE ONCE "BBB/pruio_pins.bi" ' libruio pin numbering
 '#INCLUDE ONCE "BBB/pruw1.bi" ' library header (after `make install`)
 #INCLUDE ONCE "../bas/pruw1.bi" ' library header
-#INCLUDE ONCE "BBB/pruio_pins.bi" ' libruio pin numbering
 
 VAR io = NEW PruIo() '*< Pointer to libpruio instance.
 DO
@@ -40,6 +41,7 @@ DO
     ?*iif(.checkPara(), @"At least one", @"No") _
                         & " parasite powered device."
     ' Scan the bus for device IDs
+    ?"trying to scan bus ..."
     IF .scanBus() THEN _
                         PRINT"scanBus failed (" & *.Errr & ")" : EXIT DO
     ? ' print them out

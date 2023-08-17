@@ -17,9 +17,10 @@ Check the output for enabled monitoring feature as well, see section
 \since 0.0
 '/
 
+#INCLUDE ONCE "BBB/pruio.bi" ' header for mandatroy libpruio
+#INCLUDE ONCE "BBB/pruio_pins.bi" ' libruio pin numbering
 '#INCLUDE ONCE "BBB/pruw1.bi" ' library header (after `make install`)
 #INCLUDE ONCE "../bas/pruw1.bi" ' library header
-#INCLUDE ONCE "BBB/pruio_pins.bi" ' libruio pin numbering
 
 VAR io = NEW PruIo() '*< Pointer to libpruio instance.
 DO
@@ -30,11 +31,12 @@ DO
                'PRINT "libpruio config failed (" & *.Errr & ")" : exit do
 
   '* Create new libpruw1 instance.
-  VAR w1 = NEW PruW1(io, P9_15) 
+  VAR w1 = NEW PruW1(io, P9_15)
   DO : WITH *w1
     IF .Errr THEN _
           ?"w1 CTOR failed (" & *.Errr & "/" & *io->Errr & ")" : EXIT DO
     ' Scan the bus for device IDs
+    ?"trying to scan bus ..."
     IF .scanBus() THEN _
                         PRINT"scanBus failed (" & *.Errr & ")" : EXIT DO
     ? ' print them out
@@ -48,7 +50,7 @@ DO
       IF .resetBus() THEN                        ?"no devices" : EXIT DO
       .sendByte(&hCC)            ' SKIP_ROM command -> broadcast message
       .sendByte(&h44)       ' convert T command -> all sensors triggered
-      SLEEP 750 : ?                              ' wait for conversation
+      SLEEP 790 : ?                              ' wait for conversation
       ' Fetch the data from sensor scratch pads
       FOR s AS INTEGER = 0 TO UBOUND(.Slots)
         IF PEEK(UBYTE, @.Slots(s)) <> &h10 THEN CONTINUE FOR ' series 10 only
@@ -63,6 +65,7 @@ DO
         ' output result
         VAR crc = .calcCrc(9) '*< The checksum (0 = OK).
         ?"sensor " & HEX(.Slots(s), 16) & " --> CRC ";
+
         IF crc THEN ?"error!" _
                ELSE ?"OK: " & T_fam10(res) / 256 & " °C"
       NEXT
