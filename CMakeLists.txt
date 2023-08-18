@@ -31,6 +31,7 @@ IF(PASM_ASSEMBER_WORKS)
 
   ADD_LIBRARY(pruw1 SHARED $<TARGET_OBJECTS:pruw1fbcode>)
   #ADD_DEPENDENCIES(pruw1 pruw1fbcode)
+  SET(CMAKE_SHARED_LINKER_FLAGS "") # must be global ??
   SET_TARGET_PROPERTIES(pruw1 PROPERTIES
     LINK_FLAGS "-v -Wl -z,relro"
     SOVERSION "o" # adapt <Package: ...> in debian/control
@@ -41,12 +42,6 @@ IF(PASM_ASSEMBER_WORKS)
   ADD_DEPENDENCIES(examples pruw1)
   #SET_TARGET_PROPERTIES(examples PROPERTIES EXCLUDE_FROM_ALL 1)
 
-  SET(CMAKE_SHARED_LINKER_FLAGS "") # must be global ??
-  SET_TARGET_PROPERTIES(pruw1 PROPERTIES
-    LINK_FLAGS "-v -Wl -z,relro"
-    SOVERSION "o" # adapt <Package: ...> in debian/control
-    #NO_SONAME "YES"
-    )
   INSTALL(TARGETS pruw1
     LIBRARY DESTINATION lib
     COMPONENT bin

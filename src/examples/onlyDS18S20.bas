@@ -31,7 +31,7 @@ DO
                'PRINT "libpruio config failed (" & *.Errr & ")" : exit do
 
   '* Create new libpruw1 instance.
-  VAR w1 = NEW PruW1(io, P9_15)
+  VAR w1 = NEW PruW1(io, P9_17)
   DO : WITH *w1
     IF .Errr THEN _
           ?"w1 CTOR failed (" & *.Errr & "/" & *io->Errr & ")" : EXIT DO

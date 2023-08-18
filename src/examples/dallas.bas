@@ -31,8 +31,8 @@ DO
                'PRINT "libpruio config failed (" & *.Errr & ")" : exit do
 
   '* Create new libpruw1 instance.
-  VAR w1 = NEW PruW1(io, P9_15, PRUW1_PARPOW + PRUW1_PULLUP) ' 2 wire (VDD=GND)
-  'VAR w1 = NEW PruW1(io, P9_15) ' external VDD and pullup
+  'VAR w1 = NEW PruW1(io, P9_15, PRUW1_PARPOW + PRUW1_PULLUP) ' 2 wire (VDD=GND)
+  VAR w1 = NEW PruW1(io, P9_17) ' external VDD and pullup
 
   DO : WITH *w1
     IF .Errr THEN _
