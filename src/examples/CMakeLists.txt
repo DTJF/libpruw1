@@ -3,7 +3,7 @@ SET(EXA_SRC
   "onlyDS18S20"
   )
 
-#SET(CMAKE_VERBOSE_MAKEFILE 1)
+SET(CMAKE_VERBOSE_MAKEFILE 1)
 ADD_CUSTOM_TARGET(examples)
 
 IF(CMAKE_Fbc_COMPILER_WORKS)
@@ -11,7 +11,8 @@ IF(CMAKE_Fbc_COMPILER_WORKS)
   ADD_CUSTOM_TARGET(fb_examples DEPENDS pruw1)
   FOREACH(tar ${EXA_SRC})
     ADD_EXECUTABLE(${tar} EXCLUDE_FROM_ALL ${tar}.bas)
-    TARGET_LINK_LIBRARIES(${tar} pruw1 pruio fbgfx X11 Xext Xpm Xrandr Xrender)
+    #TARGET_LINK_LIBRARIES(${tar} pruw1 pruio fbgfx X11 Xext Xpm Xrandr Xrender)
+    TARGET_LINK_LIBRARIES(${tar} pruw1 pruio)
     SET_TARGET_PROPERTIES(${tar} PROPERTIES
       COMPILE_FLAGS "-m ${tar} -gen gcc -Wc -O2,-D_FORTIFY_SOURCE=2,-fstack-protector-strong,-Wformat,-Werror=format-security"
       LINK_FLAGS "-Wl -z,relro"

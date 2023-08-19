@@ -7,7 +7,7 @@ PROJECT(libpruw1 Fbc)
 # constants
 SET(PROJ_NAME "${CMAKE_PROJECT_NAME}" CACHE STRING "project name" FORCE)
 SET(PROJ_DESC "One wire (W1) driver for Beaglebone hardware based on libpruio" CACHE STRING "project description" FORCE)
-SET(PROJ_VERS "0.0"     CACHE STRING "project version" FORCE)
+SET(PROJ_VERS "0.4"     CACHE STRING "project version" FORCE)
 SET(PROJ_AUTH "DTJF"    CACHE STRING "project authors" FORCE)
 SET(PROJ_MAIL "Thomas{ doT ]Freiherr[ At ]gmx[ DoT }net"  CACHE STRING "project mail address" FORCE)
 SET(PROJ_WEBS "https://github.com/DTJF/libpruw1" CACHE STRING "project website" FORCE)
@@ -23,14 +23,20 @@ ENDFUNCTION()
 
 CONFIGURE_FILE(src/doc/ReadMe.md.in ${CMAKE_SOURCE_DIR}/ReadMe.md @ONLY)
 
+ADD_SUBDIRECTORY(doxy)
 ADD_SUBDIRECTORY(src/bas)
 ADD_SUBDIRECTORY(src/c_include)
-ADD_SUBDIRECTORY(doxy)
 
-#IF(PASM_ASSEMBER_WORKS AND LIBPRUSSDRV_LIBRARY)
 IF(PASM_ASSEMBER_WORKS)
+
   ADD_LIBRARY(pruw1 SHARED $<TARGET_OBJECTS:pruw1fbcode>)
   #ADD_DEPENDENCIES(pruw1 pruw1fbcode)
+  SET(CMAKE_SHARED_LINKER_FLAGS "") # must be global ??
+  SET_TARGET_PROPERTIES(pruw1 PROPERTIES
+    LINK_FLAGS "-v -Wl -z,relro"
+    SOVERSION "o" # adapt <Package: ...> in debian/control
+    #NO_SONAME "YES"
+    )
 
   ADD_SUBDIRECTORY(src/examples)
   ADD_DEPENDENCIES(examples pruw1)

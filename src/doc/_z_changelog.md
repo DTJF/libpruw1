@@ -13,6 +13,24 @@ Changelog & Credits {#ChaChangelog}
 Feel free to send further ideas to the author (\Email).
 
 
+# libpruw1-0.4 {#SecV-0-4}
+
+Released on 2020 Nov.
+
+- new: using SRam (12kB) for logs (instead of DRam/8kB)
+- fix: fb_examples linking (SONAME "o" trick)
+- fix: dependency prussdrv library removed
+- fix: using pruio_prussdrv.bi (libpruio-0.6) header
+- fix: Doc-Chapter Preparation adapted
+- fix: CTOR uses correct IRam
+- fix: example codes
+
+# libpruw1-0.2 {#SecV-0-2}
+
+Released on 2020 Apr.
+
+- fix: bugfix in function T_fam10()
+
 # libpruw1-0.0 {#SecV-0-0}
 
 Released on 2016 July, 5.

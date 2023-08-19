@@ -1,5 +1,5 @@
 Welcome to (the currently experimental -- please report bugs -- version
-0.0 of) *libpruw1* library,
+0.4 of) *libpruw1* library,
 
 - a [one wire (W1)](https://en.wikipedia.org/wiki/1-Wire) driver for AM335x micro processors,
 - designed for [Beaglebone hardware](http://www.beaglebone.org), providing

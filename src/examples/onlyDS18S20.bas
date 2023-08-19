@@ -17,9 +17,10 @@ Check the output for enabled monitoring feature as well, see section
 \since 0.0
 '/
 
+#INCLUDE ONCE "BBB/pruio.bi" ' header for mandatroy libpruio
+#INCLUDE ONCE "BBB/pruio_pins.bi" ' libruio pin numbering
 '#INCLUDE ONCE "BBB/pruw1.bi" ' library header (after `make install`)
 #INCLUDE ONCE "../bas/pruw1.bi" ' library header
-#INCLUDE ONCE "BBB/pruio_pins.bi" ' libruio pin numbering
 
 VAR io = NEW PruIo() '*< Pointer to libpruio instance.
 DO
@@ -29,17 +30,19 @@ DO
   'IF io->config() THEN _
                'PRINT "libpruio config failed (" & *.Errr & ")" : exit do
 
-  VAR w1 = NEW PruW1(io, P9_15) '*< Pointer to libpruw1 instance.
+  '* Create new libpruw1 instance.
+  VAR w1 = NEW PruW1(io, P9_15)
   DO : WITH *w1
     IF .Errr THEN _
           ?"w1 CTOR failed (" & *.Errr & "/" & *io->Errr & ")" : EXIT DO
     ' Scan the bus for device IDs
-    IF .scanBus() THEN _
-                        PRINT"scanBus failed (" & *.Errr & ")" : EXIT DO
+    ?"trying to scan bus ..."
+    IF .scanBus() THEN  PRINT"scanBus failed (" & *.Errr & ")" : EXIT DO
     ? ' print them out
     FOR i AS INTEGER = 0 TO UBOUND(.Slots) ' output slot# and sensor IDs
       ?"found device " & i & ", ID: " & HEX(.Slots(i), 16)
     NEXT
+
     VAR res = CAST(UBYTE PTR, @.DRam[4]) '*< pointer to measurement data
     ' Perform some measurements
     FOR i AS INTEGER = 0 TO 10 '                output 11 blocks of data
@@ -62,6 +65,7 @@ DO
         ' output result
         VAR crc = .calcCrc(9) '*< The checksum (0 = OK).
         ?"sensor " & HEX(.Slots(s), 16) & " --> CRC ";
+
         IF crc THEN ?"error!" _
                ELSE ?"OK: " & T_fam10(res) / 256 & " °C"
       NEXT

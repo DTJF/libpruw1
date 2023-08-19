@@ -64,36 +64,36 @@ websides, linked by the name in the first column.
    cd cmakefbc
    mkdir build
    cd build
-   cmake ..
+   cmake .. -DCMAKE_MODULE_PATH=../cmake/Modules
    make
    sudo make install
    ~~~
    \note Omit `sudo` in case of non-LINUX systems.
 
--# Then install libpruio, using GIT and CMake. Execute the commands ???
-   ~~~{.txt}
-   git clone https://github.com/DTJF/libpruio
-   cd libpruio
-   mkdir build
-   cd build
-   cmake ..
-   make
-   sudo make install
-   sudo ldconfig
-   sudo make init
-   ~~~
-   \note Omit `sudo` in case of non-LINUX systems.
-
--# And finaly, install fbdoc (if wanted) by using GIT and CMake.
+-# And install fbdoc (if wanted) by using GIT and CMake.
    Execute the commands
    ~~~{.txt}
    git clone https://github.com/DTJF/fbdoc
    cd fbdoc
    mkdir build
    cd build
-   cmake ..
+   cmakefbc ..
    make
    sudo make install
+   ~~~
+   \note Omit `sudo` in case of non-LINUX systems.
+
+-# Then finaly, install libpruio, using GIT and CMake. Execute the commands
+   ~~~{.txt}
+   git clone https://github.com/DTJF/libpruio
+   cd libpruio
+   mkdir build
+   cd build
+   cmakefbc ..
+   make
+   sudo make install
+   sudo ldconfig
+   sudo make init
    ~~~
    \note Omit `sudo` in case of non-LINUX systems.
 
@@ -132,7 +132,7 @@ In order to perform an out of source build, execute
 ~~~{.txt}
 mkdir build
 cd build
-cmake ..
+cmakefbc ..
 make
 sudo make install
 sudo ldconfig
@@ -153,56 +153,62 @@ installation folder.
 
 # Test
 
-In order to test the installation, build and run an example application
+In order to test the installation, first wire a dallas sensor to GND
+(`P9_01`) and VDD (3V3 @ `P9_03`) and connect the data line to `P9_15`.
+Then build the example applications and run one of them
 
 ~~~{.txt}
 make examples
-sudo src/examples/dallas
+src/examples/dallas
 ~~~
 
-The example uses header pin `P9_15` for the one-wire bus. Connect this
-pin by a pull-up resistor (4k7) to `P9_03` (3V3) and connect your
-Dallas sensors to that bus. The program first scans the sensor IDs and
-lists them on the command line output. Further output contains eleven
-blocks of sensor data, sensor ID and temperature in degree centigrade
-in each line, like
+The example uses by default the header pin `P9_15` for the one-wire bus,
+pulling it up by the internal pull-up resitor. The command line program
+first scans the bus for sensor IDs and lists them as terminal output.
+Further output contains eleven blocks of sensor data, sensor ID and
+temperature in degree centigrade in each line, like
 
 ~~~{.txt}
-libpruw1/build$ sudo src/examples/dallas
+No parasite powered device.
+trying to scan bus ...
 
-found device 0, ID: D1000802E7B0AA10
-found device 1, ID: B8000802E824BA10
+found device 0, ID: A7000802E844C310 parasite
 
-sensor D1000802E7B0AA10 --> OK: 26.125
-sensor B8000802E824BA10 --> OK: 26.1875
+sensor A7000802E844C310 --> CRC OK: 26.625 °C
 
-sensor D1000802E7B0AA10 --> OK: 26.125
-sensor B8000802E824BA10 --> OK: 26.1875
+sensor A7000802E844C310 --> CRC OK: 26.625 °C
 
-sensor D1000802E7B0AA10 --> OK: 26.125
-sensor B8000802E824BA10 --> OK: 26.1875
+sensor A7000802E844C310 --> CRC OK: 26.625 °C
 
-sensor D1000802E7B0AA10 --> OK: 26.1875
-sensor B8000802E824BA10 --> OK: 26.25
+sensor A7000802E844C310 --> CRC OK: 26.625 °C
 
-sensor D1000802E7B0AA10 --> OK: 26.1875
-sensor B8000802E824BA10 --> OK: 26.25
+sensor A7000802E844C310 --> CRC OK: 26.625 °C
 
-sensor D1000802E7B0AA10 --> OK: 26.1875
-sensor B8000802E824BA10 --> OK: 26.1875
+sensor A7000802E844C310 --> CRC OK: 26.625 °C
 
-sensor D1000802E7B0AA10 --> OK: 26.1875
-sensor B8000802E824BA10 --> OK: 26.25
+sensor A7000802E844C310 --> CRC OK: 26.625 °C
 
-sensor D1000802E7B0AA10 --> OK: 26.25
-sensor B8000802E824BA10 --> OK: 26.25
+sensor A7000802E844C310 --> CRC OK: 26.625 °C
 
-sensor D1000802E7B0AA10 --> OK: 26.1875
-sensor B8000802E824BA10 --> OK: 26.25
+sensor A7000802E844C310 --> CRC OK: 26.625 °C
 
-sensor D1000802E7B0AA10 --> OK: 26.1875
-sensor B8000802E824BA10 --> OK: 26.25
+sensor A7000802E844C310 --> CRC OK: 26.625 °C
 
-sensor D1000802E7B0AA10 --> OK: 26.25
-sensor B8000802E824BA10 --> OK: 26.25
+sensor A7000802E844C310 --> CRC OK: 26.6875 °C
 ~~~
+
+Congrats, the driver is working on your system!
+
+
+# Examples
+
+The package contains two examples
+
+\Item{src/examples/dallas.bas} Universal application for all dallas
+types (`&h10`, `&h20`, `&h22`, `&h28`, `&h3B` or `&h42`) and for
+external or parasite powering (by the cost of high power consumption).
+
+\Item{src/examples/onlyDS18S20.bas} Restrictive application handling
+only old (type `&h10`) sensors with external powering (VDD = 3V3).
+
+Each of them can handle multiple sensors on the bus.
