@@ -39,7 +39,7 @@ different. That's why all numbers are decimal.
 // Swap the following two lines in order to compile with monitoring features.
 #define __PRUW1_MONITOR__
 #endif
-#define __SRAM_BA_SE__
+#define __SRAM_BASE__
 
 #define CMD_RESET 16
 #define CMD_TRIP  32

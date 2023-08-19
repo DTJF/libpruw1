@@ -31,8 +31,8 @@ DO
                'PRINT "libpruio config failed (" & *.Errr & ")" : exit do
 
   '* Create new libpruw1 instance.
-  'VAR w1 = NEW PruW1(io, P9_15, PRUW1_PARPOW + PRUW1_PULLUP) ' 2 wire (VDD=GND)
-  VAR w1 = NEW PruW1(io, P9_17) ' external VDD and pullup
+  VAR w1 = NEW PruW1(io, P9_15, PRUW1_PARPOW + PRUW1_PULLUP) ' 2 wire (VDD=GND)
+  'VAR w1 = NEW PruW1(io, P9_15) ' external VDD and pullup
 
   DO : WITH *w1
     IF .Errr THEN _
@@ -42,21 +42,15 @@ DO
                         & " parasite powered device."
     ' Scan the bus for device IDs
     ?"trying to scan bus ..."
-    IF .scanBus() THEN _
-                        PRINT"scanBus failed (" & *.Errr & ")" : EXIT DO
+    IF .scanBus() THEN  PRINT"scanBus failed (" & *.Errr & ")" : EXIT DO
     ? ' print them out
     FOR i AS INTEGER = 0 TO UBOUND(.Slots) ' output slot# and sensor IDs
       ?"found device " & i & ", ID: " & HEX(.Slots(i), 16)
-      IF 0 = .resetBus() THEN
-        .sendRom(.Slots(i))            ' send sensor ID -> select sensor
-        .sendByte(&hB4)  ' READ_POWER command
-        ? *IIF(BIT(.recvByte(), 0), @" parasite", @" external")
-      end if
     NEXT
 
     VAR res = CAST(UBYTE PTR, @.DRam[4]) '*< pointer to measurement data
     ' Perform some measurements
-   FOR i AS INTEGER = 0 TO 2 '                output 11 blocks of data
+    FOR i AS INTEGER = 0 TO 10 '                output 11 blocks of data
       ' Start measurement, send the presense pulse (0 = OK).
       IF .resetBus() THEN                        ?"no devices" : EXIT DO
       .sendByte(&hCC)            ' SKIP_ROM command -> broadcast message
@@ -75,8 +69,6 @@ DO
         .sendRom(.Slots(s))            ' send sensor ID -> select sensor
         .sendByte(&hBE) 'READ_SCRATCH command -> sensor sends scratchpad
         .recvBlock(9) ' read data block (64 bit scratchpad and CRC byte)
-
-'?HEX(PEEK(ULONGINT, @.DRam[4]), 16)
 
         ' output result
         VAR crc = .calcCrc(9) '*< The checksum (0 = OK).

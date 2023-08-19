@@ -33,13 +33,13 @@
 // 0x10 Data  Data to exchange between PRU and ARM
 // 0x140 LogData  Data for monitoring feature (=LOG_BASE*4)
 
-.macro SWITCH_INP
+.macro SWITCH_INP  // switch line to input mode
   LBBO OE,  DeAd, 0x34, 4  // load OE
   OR   OE,  OE, Msk1       // set bit -> input
   SBBO OE,  DeAd, 0x34, 4  // write OE
 .endm
 
-.macro SWITCH_OUT
+.macro SWITCH_OUT  // switch line to output mode
   LBBO OE,  DeAd, 0x34, 4  // load OE
   AND  OE,  OE, Msk0       // clr bit -> output
   SBBO OE,  DeAd, 0x34, 4  // write OE
@@ -57,20 +57,20 @@ XOR  Msk0, Msk0, Msk1
 LDI  XX, LOG_BASE*4    // init write offset
 
 main_loop:
-  QBBS parpower, CMD.b0, 0 // parasit power required?      
+  QBBS parpower, CMD.b0, 0 // parasit power required?
   SWITCH_INP
   JMP mainCont
 
   parpower:
   SBBO Msk1, DeAd, SDO, 4 // write set data out --> HIGH
-  SWITCH_OUT              
-                          
-  mainCont:               
+  SWITCH_OUT
+
+  mainCont:
   SBBO MonC, RAM, 0x0C, 4 // save bit counter
   LDI  MonC,  0           // reset counter
   SBBO MonC, RAM, 0x00, 4 // clear command parameter
-                          
-  getCMD:                 
+
+  getCMD:
   LBBO CMD, RAM, 0x00, 4  // load command
   QBEQ getCMD, CMD, 0     // wait for command
 
