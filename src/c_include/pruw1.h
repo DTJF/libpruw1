@@ -19,9 +19,6 @@ Copyright 2015-\Year by \Email
  extern "C" {
 #endif /* __cplusplus */
 
-#include "pruw1.hp"
-#include "libpruio/pruio.h"
-
 typedef unsigned char UInt8;      //!< 8 bit unsigned integer data type.
 typedef short Int16;              //!< 16 bit signed integer data type.
 typedef int Int32;                //!< 32 bit signed integer data type.
@@ -97,7 +94,7 @@ typedef struct pruw1{
 
   //! A pre-computed table for fast CRC checksum computation.
   UInt8 crc8_table[255 + 1];
-  //UInt64 *Slots; //!< The FB array to store the device IDs.
+  UInt8 Slots[32]; //!< Meta-data for FB array to store the device IDs.
 }pruw1;
 
 /** \brief Wrapper function for the constructor PruW1::PruW1().
@@ -110,26 +107,31 @@ The constructor is designed to
 
 - allocate and initialize memory for the class variables,
 - evaluate the free PRU (not used by libpruio)
-- check the header pin configuration (and, if not matching, try to adapt it - root privileges),
+- check the header pin configuration (and, if not matching, try to adapt it - pinmuxing),
 - load the firmware and start it
 
-In case of success the variable PruW1::Errr is 0 (zero) and you can
-start to communicate on the bus. Otherwise the variable contains an
-error message. The string is owned by \Proj and should not be freed. In
-that case call the destructor (and do not start any communication).
+In case of success the variable PruW1::Errr is 0 (zero), ready for
+starting the communication on the bus. Otherwise the variable contains
+an error message. The string is owned by \Proj and should not be freed.
+In that case call the destructor (and do not start any communication).
 
 The operating modus M is introduced in version 0.4 in order to
 influence power consumption (ie. for batterie powered systems):
 
-- Bit-0 controlls the idle state of the line. By default the line is in
-input state and the external pull-up resistor pulls the line high
-during idle. Set the bit to configure the line for parasite power (=
-output/high during idle) by the costs of more energy consumption (max.
-current = 6 mA).
+- Bit-0 controlls the idle state of the line during sensor operation.
+  By default the line is in input state (only the pull-up resistor
+  pulls the line high). Set this bit in order to bring the line in high
+  output state during sensor operation for parasite powering.
 
-- Bit-1 controlls the resistor configuration. By default an external
-resistor is used at the line (usually 4k7 Ohm). Set the bit to
-configure the internal pull up resistor (10k).
+\note For parasite powering the sensor VDD line must get grounded. The
+      sensors current is up to 1.5 mA, so you must not run more than 4
+      sensors in parasite powering on a BBB-GPIO.
+
+- Bit-1 controlls the resistor configuration. By default By default the
+  internal pull-up resistor pulls the line high, so that a sensor can
+  operate without any further wiring. For long cables use an external
+  resistor (usually 4k7 Ohm). Clear the bit in oder to save some energy
+  consumption.
 
 \since 0.0
 */

@@ -19,10 +19,10 @@ Check the output for enabled monitoring feature as well, see section
 
 #include <stdio.h>
 #include <unistd.h>
-#include "../c_include/pruw1.h" // library header
-//#include "libpruw1/pruw1.h" //     library header when installed
+#include "libpruio/pruio.h"
 #include "libpruio/pruio_pins.h" // libruio pin numbering
-//#include <libpruio/pruio_pins.h> // libruio pin numbering
+#include "../c_include/pruw1.h" // library header (local)
+//#include "libpruw1/pruw1.h" //     library header when installed
 
 //! The main function.
 int main(int argc, char **argv)
@@ -41,13 +41,13 @@ int main(int argc, char **argv)
               //printf("libpruio config failed (%s)\n", io->Errr); break;}
 
     // Create new libpruw1 instance.
-    pruw1 *w1 = pruw1_new(io, P9_15, 0);
+    pruw1 *w1 = pruw1_new(io, P9_15, PRUW1_PULLUP);
     if (w1->Errr) {
                 printf("libpruw1 CTOR failed (%s)\n", w1->Errr); break;}
     // Scan the bus for device IDs
+    printf("\ntrying to scan devices ...");
     if (pruw1_scanBus(w1)) {
                       printf("scanBus failed (%s)\n", w1->Errr); break;}
-    printf("\nsizeof(UInt64)=%d",sizeof(UInt64));
     for (i = 0; i <= pruw1_getSlotMax(w1); i++)
     {
       printf("\nfound device %d, ID: %llX", i, pruw1_getId(w1, i));
