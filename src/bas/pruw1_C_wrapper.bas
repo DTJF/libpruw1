@@ -107,7 +107,6 @@ FUNCTION pruw1_getSlotMax CDECL ALIAS "pruw1_getSlotMax"( _
   RETURN UBOUND(W1->Slots)
 END FUNCTION
 
-
 '* \brief Function to empty the array PruW1::Slots from C.
 SUB pruw1_eraseSlots CDECL ALIAS "pruw1_eraseSlots"( _
   BYVAL W1 AS PruW1 PTR) EXPORT

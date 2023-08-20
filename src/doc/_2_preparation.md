@@ -27,7 +27,7 @@ packages in their distrubution management system (D).
 |                                               Name  | Type |  Function                                                      |
 | --------------------------------------------------: | :--: | :------------------------------------------------------------- |
 | [fbc](http://www.freebasic.net)                     | M    | FreeBASIC compiler to compile the source code                  |
-| [libpruio](https://github.com/DTJF/libpruio)        | M    | Library used for pinmuxing                                     |
+| [libpruio](https://github.com/DTJF/libpruio)        | M    | Library used for pinmuxing (>= 0.6)                            |
 | [dtc](https://git.kernel.org/cgit/utils/dtc/dtc.git)| M  D | Device tree compiler to create overlays                        |
 | [GIT](http://git-scm.com/)                          | R  D | Version control system to organize the files                   |
 | [CMake](http://www.cmake.org)                       | R  D | Build management system to build executables and documentation |
@@ -153,7 +153,7 @@ installation folder.
 
 # Test
 
-In order to test the installation, first wire a dallas sensor to GND
+In order to test the installation, first wire a Dallas sensor to GND
 (`P9_01`) and VDD (3V3 @ `P9_03`) and connect the data line to `P9_15`.
 Then build the example applications and run one of them
 
@@ -197,14 +197,14 @@ sensor A7000802E844C310 --> CRC OK: 26.625 °C
 sensor A7000802E844C310 --> CRC OK: 26.6875 °C
 ~~~
 
-Congrats, the driver is working on your system!
+Congrats, driver and examples are working on your system!
 
 
 # Examples
 
 The package contains two examples
 
-\Item{src/examples/dallas.bas} Universal application for all dallas
+\Item{src/examples/dallas.bas} Universal application for all Dallas
 types (`&h10`, `&h20`, `&h22`, `&h28`, `&h3B` or `&h42`) and for
 external or parasite powering (by the cost of high power consumption).
 

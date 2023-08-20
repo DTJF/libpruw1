@@ -67,15 +67,15 @@ Int16 T_FAM20(UInt8* Rom);
 
 /*! \brief Masks for line idle configuration
 
-This enumerators are for use in CTOR PruW1::PruW1() to configure the 
-line idle modus, regarding parasite power support and the use of the 
+This enumerators are for use in CTOR PruW1::PruW1() to configure the
+line idle modus, regarding parasite power support and the use of the
 internal pull up resistor.
 
 \since 0.4
 */
 enum LineModus{
-  PRUW1_PARPOW = 0x01 //!< Set line output high during idle
- ,PRUW1_PULLUP = 0x10 //!< Activate the internal pull up resistor
+  PRUW1_PARPOW = 0x1 //!< Set line output high during idle
+ ,PRUW1_PULLUP = 0x2 //!< Activate the internal pull up resistor
 };
 
 
@@ -113,23 +113,23 @@ The constructor is designed to
 - check the header pin configuration (and, if not matching, try to adapt it - root privileges),
 - load the firmware and start it
 
-In case of success the variable PruW1::Errr is 0 (zero) and you can 
-start to communicate on the bus. Otherwise the variable contains an 
-error message. The string is owned by \Proj and should not be freed. In 
+In case of success the variable PruW1::Errr is 0 (zero) and you can
+start to communicate on the bus. Otherwise the variable contains an
+error message. The string is owned by \Proj and should not be freed. In
 that case call the destructor (and do not start any communication).
 
-The operating modus M is introduced in version 0.4 in order to 
+The operating modus M is introduced in version 0.4 in order to
 influence power consumption (ie. for batterie powered systems):
 
-- Bit-0 controlls the idle state of the line. By default the line is in 
-input state and the external pull-up resistor pulls the line high 
-during idle. Set the bit to configure the line for parasite power (= 
-output/high during idle) by the costs of more energy consumption (max. 
+- Bit-0 controlls the idle state of the line. By default the line is in
+input state and the external pull-up resistor pulls the line high
+during idle. Set the bit to configure the line for parasite power (=
+output/high during idle) by the costs of more energy consumption (max.
 current = 6 mA).
 
-- Bit-1 controlls the resistor configuration. By default an external 
-resistor is used at the line (usually 4k7 Ohm). Set the bit to 
-configure the internal pull up resistor (10k). 
+- Bit-1 controlls the resistor configuration. By default an external
+resistor is used at the line (usually 4k7 Ohm). Set the bit to
+configure the internal pull up resistor (10k).
 
 \since 0.0
 */
@@ -252,10 +252,10 @@ UInt8 pruw1_resetBus(pruw1* W1);
 /** \brief Check line for parasite powered device.
 \returns TRUE (1) if at least one device uses parasite power, FALSE (0) otherwise.
 
-This function triggers a broadscast READ POWER command. The returned 
-value is the byte received. If the function returns FALSE (0) there's 
-no parasite powered device on the bus (all VDD=3V3). In contrast, TRUE 
-(1) means at least one device has no external power line (VDD=GND) and 
+This function triggers a broadscast READ POWER command. The returned
+value is the byte received. If the function returns FALSE (0) there's
+no parasite powered device on the bus (all VDD=3V3). In contrast, TRUE
+(1) means at least one device has no external power line (VDD=GND) and
 needs the strong pullup in idle mode.
 
 \since 0.4

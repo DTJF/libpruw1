@@ -33,7 +33,7 @@ functions to decode the temperature from the received data.
  #ENDMACRO
 #ENDIF
 
-/'* \brief The constructor configuring the pin, loading and starting the PRU code.
+/'* \brief The constructor is configuring the bus pin, loading and starting the PRU code.
 \param P A pointer to the libpruio instance (for pinmuxing).
 \param B The header pin to use as W1 bus data line.
 \param M The operating modus (Parasite power, internal pull-up).
@@ -42,7 +42,7 @@ The constructor is designed to
 
 - allocate and initialize memory for the class variables,
 - evaluate the free PRU (not used by libpruio)
-- check the header pin configuration (and, if not matching, try to adapt it - root privileges),
+- check the header pin configuration (and, if not matching, try to adapt it - pinmuxing),
 - load the firmware and start it
 
 In case of success the variable PruW1::Errr is 0 (zero), ready for
@@ -56,8 +56,11 @@ influence power consumption (ie. for batterie powered systems):
 - Bit-0 controlls the idle state of the line during sensor operation.
   By default the line is in input state (only the pull-up resistor
   pulls the line high). Set this bit in order to bring the line in high
-  output state during sensor measurement operation for parasite
-  powering.
+  output state during sensor operation for parasite powering.
+
+\note For parasite powering the sensor VDD line must get grounded. The
+      sensors current is up to 1.5 mA, so you must not run more than 4
+      sensors in parasite powering on a BBB-GPIO.
 
 - Bit-1 controlls the resistor configuration. By default By default the
   internal pull-up resistor pulls the line high, so that a sensor can

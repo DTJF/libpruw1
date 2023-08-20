@@ -1,12 +1,11 @@
-Welcome to (the currently experimental -- please report bugs -- version
-@PROJ_VERS@ of) *@PROJ_NAME@* library,
+Welcome to *@PROJ_NAME@* library project,
 
 - a [one wire (W1)](https://en.wikipedia.org/wiki/1-Wire) driver for AM335x micro processors,
 - designed for [Beaglebone hardware](http://www.beaglebone.org), providing
 - configuration of any GPIO as W1 bus (without additional hardware), for
-- sending digital output and receiving digital input from the bus, and
-- logging the bus data line state for monitoring purposes, but
-- not supporting parasite power mode.
+- sending digital output and receiving digital input from the bus,
+- logging the bus data line state for monitoring purposes,
+- supporting parasite power mode.
 
 *@PROJ_NAME@* software runs on the host (ARM) and in parallel on a
 Programmable Realtime Unit SubSystem (= PRUSS or just PRU) for accurate
@@ -18,7 +17,7 @@ The driver provides functions to
 - send a single byte or a block of eight bytes to the bus,
 - receive a single byte or a block of bytes from the bus,
 - calculate the CRC checksum for a block of data, and
-- compute the temperature from Dallas sensors series 10 and 20.
+- compute the temperature in °C (centigrade) from Dallas sensors (types `&h10`, `&h20`, `&h22`, `&h28`, `&h3B` or `&h42`).
 
 The *@PROJ_NAME@* project is [hosted at GitHub](@PROJ_WEBS@). It's
 developed and tested on a Beaglebone Black under Debian Image
@@ -33,8 +32,9 @@ Find more information in the online documentation at
 
 or at related forum pages:
 
-- [BeagleBoard: libpruw1 (one wire driver using GPIO)](https://groups.google.com/forum/#!category-topic/beagleboard/CN5qKSmPIbc)
-- [FreeBASIC: libpruw1 (one wire driver using GPIO)](http://www.freebasic.net/forum/viewtopic.php?f=14&t=22501)
+- [BeagleBoard: libpruw1 (one wire driver using GPIO)](https://forum.beagleboard.org/t/libpruw1-one-wire-driver-using-gpio/35688)
+- [EN-FreeBASIC: libpruw1 (one wire driver using GPIO)](https://www.freebasic.net/forum/viewtopic.php?t=32356)
+- [DE-FreeBASIC: libpruw1](https://www.freebasic-portal.de/downloads/fb-on-arm/libpruw1-402.html)
 
 
 Licence:

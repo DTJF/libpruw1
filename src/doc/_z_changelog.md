@@ -19,9 +19,9 @@ Released on 2020 Nov.
 
 - new: using SRam (12kB) for logs (instead of DRam/8kB)
 - fix: fb_examples linking (SONAME "o" trick)
-- fix: dependency prussdrv library removed
-- fix: using pruio_prussdrv.bi (libpruio-0.6) header
+- fix: dependency to libprussdrv removed, using pruio_prussdrv.bi (libpruio-0.6) header instead
 - fix: Doc-Chapter Preparation adapted
+- fix: Doc-Chapter Introduction added
 - fix: CTOR uses correct IRam
 - fix: example codes
 
